@@ -1,0 +1,121 @@
+﻿version: '3.8'
+
+services:
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+
+  # API Gateway
+  gateway:
+    build:
+      context: ./gateway
+    ports:
+      - "8080:80"
+    depends_on:
+      - auth-service
+      - workshop-service
+#      - report-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - AuthService__Url=http://auth-service
+      - WorkshopService__Url=http://workshop-service
+      - ReportService__Url=http://report-service
+      - EmailService__Url=http://email-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+    depends_on:
+      - auth-db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__AuthDb=Server=auth-db;Database=AuthDb;User=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+
+  # Workshop Service
+  workshop-service:
+    build:
+      context: ./workshop-service
+    depends_on:
+      - workshop-db
+      - auth-service
+      - message-broker
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__WorkshopDb=Server=workshop-db;Database=WorkshopDb;User=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      - RabbitMQ__Host=message-broker
+      - AuthService__Url=http://auth-service
+
+  # Report Service
+#  report-service:
+#    build:
+#      context: ./report-service
+#    depends_on:
+#      - report-db
+#      - message-broker
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - MongoDB__ConnectionString=mongodb://report-db:27017
+#      - MongoDB__Database=ReportDb
+#      - RabbitMQ__Host=message-broker
+
+  # Email Service
+#  email-service:
+#    build:
+#      context: ./email-service
+#    depends_on:
+#      - message-broker
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - RabbitMQ__Host=message-broker
+#      - SmtpSettings__Host=${SMTP_HOST}
+#      - SmtpSettings__Port=${SMTP_PORT}
+#      - SmtpSettings__Username=${SMTP_USERNAME}
+#      - SmtpSettings__Password=${SMTP_PASSWORD}
+
+  # Message Broker (RabbitMQ)
+  message-broker:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+    volumes:
+      - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  # SQL Server for Auth Service
+  auth-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+    volumes:
+      - ./infrastructure/sql/auth-init.sql:/docker-entrypoint-initdb.d/auth-init.sql
+      - auth-db-data:/var/opt/mssql
+
+  # SQL Server for Workshop Service
+  workshop-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+    volumes:
+      - ./infrastructure/sql/workshop-init.sql:/docker-entrypoint-initdb.d/workshop-init.sql
+      - workshop-db-data:/var/opt/mssql
+
+  # MongoDB for Report Service
+  report-db:
+    image: mongo:latest
+    volumes:
+      - ./infrastructure/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+      - report-db-data:/data/db
+
+volumes:
+  auth-db-data:
+  workshop-db-data:
+  report-db-data:
+  rabbitmq-data:
