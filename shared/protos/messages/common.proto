@@ -1,0 +1,8 @@
+﻿syntax = "proto3";
+
+package car_service;
+
+message StatusResponse {
+  bool success = 1;
+  string message = 2;
+}
