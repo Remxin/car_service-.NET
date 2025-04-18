@@ -30,7 +30,7 @@ GO
 CREATE TABLE [service_parts] (
   [id] int PRIMARY KEY IDENTITY(1, 1),
   [order_id] int,
-  [vahicle_part_id] int,
+  [vehicle_part_id] int,
   [quantity] int NOT NULL
 )
 GO
@@ -62,7 +62,7 @@ GO
 ALTER TABLE [service_parts] ADD FOREIGN KEY ([order_id]) REFERENCES [service_orders] ([id])
 GO
 
-ALTER TABLE [service_parts] ADD FOREIGN KEY ([vahicle_part_id]) REFERENCES [vehicle_parts] ([id])
+ALTER TABLE [service_parts] ADD FOREIGN KEY ([vehicle_part_id]) REFERENCES [vehicle_parts] ([id])
 GO
 
 ALTER TABLE [service_comments] ADD FOREIGN KEY ([order_id]) REFERENCES [service_orders] ([id])

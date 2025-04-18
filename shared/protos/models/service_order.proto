@@ -1,0 +1,13 @@
+﻿syntax = "proto3";
+
+package car_service;
+
+import "google/protobuf/timestamp.proto";
+
+message ServiceOrder {
+  int32 id = 1;
+  int32 vehicle_id = 2;
+  string status = 3;
+  int32 assigned_mechanic_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
