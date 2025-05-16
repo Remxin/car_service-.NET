@@ -1,9 +1,0 @@
-﻿syntax = "proto3";
-
-package car_service;
-
-message Role {
-  int32 id = 1;
-  string name = 2;
-  string description = 3;
-}

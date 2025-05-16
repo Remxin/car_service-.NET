@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
+    <PackageId>Shared.Grpc</PackageId>
+    <Authors>TwojeImie</Authors>
+    <Description>Shared .proto files for gRPC services</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pakuj wszystkie .proto jako contentFiles w paczce -->
+    <None Include="protos\**\*.proto" Pack="true" PackagePath="contentFiles\any\protos\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Te paczki są potrzebne, ale nie generujemy tu kodu -->
+    <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.59.0" />
+  </ItemGroup>
+
+</Project>

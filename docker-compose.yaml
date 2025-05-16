@@ -2,54 +2,54 @@
 
 services:
   # Frontend
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - gateway
+#  frontend:
+#    build:
+#      context: ./frontend
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - gateway
 
   # API Gateway
-  gateway:
-    build:
-      context: ./gateway
-    ports:
-      - "8080:80"
-    depends_on:
-      - auth-service
-      - workshop-service
-#      - report-service
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - AuthService__Url=http://auth-service
-      - WorkshopService__Url=http://workshop-service
-      - ReportService__Url=http://report-service
-      - EmailService__Url=http://email-service
+#  gateway:
+#    build:
+#      context: ./gateway
+#    ports:
+#      - "8080:80"
+#    depends_on:
+#      - auth-service
+#      - workshop-service
+##      - report-service
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - AuthService__Url=http://auth-service
+#      - WorkshopService__Url=http://workshop-service
+#      - ReportService__Url=http://report-service
+#      - EmailService__Url=http://email-service
 
   # Auth Service
-  auth-service:
-    build:
-      context: ./auth-service
-    depends_on:
-      - auth-db
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__AuthDb=Server=auth-db;Database=AuthDb;User=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+#  auth-service:
+#    build:
+#      context: ./auth-service
+#    depends_on:
+#      - auth-db
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - ConnectionStrings__AuthDb=Server=auth-db;Database=AuthDb;User=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
 
   # Workshop Service
-  workshop-service:
-    build:
-      context: ./workshop-service
-    depends_on:
-      - workshop-db
-      - auth-service
-      - message-broker
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__WorkshopDb=Server=workshop-db;Database=WorkshopDb;User=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
-      - RabbitMQ__Host=message-broker
-      - AuthService__Url=http://auth-service
+#  workshop-service:
+#    build:
+#      context: ./workshop-service
+#    depends_on:
+#      - workshop-db
+#      - auth-service
+#      - message-broker
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=Development
+#      - ConnectionStrings__WorkshopDb=Server=workshop-db;Database=WorkshopDb;User=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+#      - RabbitMQ__Host=message-broker
+#      - AuthService__Url=http://auth-service
 
   # Report Service
 #  report-service:
@@ -87,25 +87,31 @@ services:
       - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
       - rabbitmq-data:/var/lib/rabbitmq
 
-  # SQL Server for Auth Service
+  # PostgreSQL for Auth Service
   auth-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:15
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD}
+      - POSTGRES_DB=AuthDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./infrastructure/sql/auth-init.sql:/docker-entrypoint-initdb.d/auth-init.sql
-      - auth-db-data:/var/opt/mssql
+      - auth-db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # mapujemy port 5432 kontenera na 5433 hosta, żeby nie kolidował
 
-  # SQL Server for Workshop Service
   workshop-db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:15
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD}
+      - POSTGRES_DB=WorkshopDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./infrastructure/sql/workshop-init.sql:/docker-entrypoint-initdb.d/workshop-init.sql
-      - workshop-db-data:/var/opt/mssql
+      - workshop-db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"  # inny port na hoście, żeby nie kolidować z auth-db
+
 
   # MongoDB for Report Service
   report-db:

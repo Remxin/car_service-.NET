@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc" Version="2.46.6" />
+    <PackageReference Include="Grpc.Tools" Version="2.59.0" PrivateAssets="All" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.59.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+    <PackageReference Include="Shared.Grpc" Version="1.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+
+<Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/messages/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
+<Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/models/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
+<Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/services/*.proto" GrpcServices="Server" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
+
+  </ItemGroup>
+
+  <Target Name="ShowNuGetPackageRoot" BeforeTargets="Build">
+    <Message Text="NuGetPackageRoot = '$(NuGetPackageRoot)'" Importance="High" />
+  </Target>
+</Project>

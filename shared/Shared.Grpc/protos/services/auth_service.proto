@@ -1,0 +1,12 @@
+﻿syntax = "proto3";
+
+import "messages/rpc_auth_messages.proto";
+
+package car_service;
+option csharp_namespace = "Shared.Grpc.Services";
+
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc VerifyUser(VerifyUserRequest) returns (VerifyUserResponse);
+}

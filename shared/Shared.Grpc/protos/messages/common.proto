@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Shared.Grpc.Messages";
+
+package car_service;
+
+message StatusResponse {
+  bool success = 1;
+  string message = 2;
+}

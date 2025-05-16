@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Shared.Grpc.Models";
+
+import "google/protobuf/timestamp.proto";
+
+package car_service;
+
+message ServiceTask {
+  int32 id = 1;
+  int32 order_id = 2;
+  string description = 3;
+  double labor_cost = 4;
+  google.protobuf.Timestamp created_at = 5;
+}

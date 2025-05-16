@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Shared.Grpc.Models";
+
+import "google/protobuf/timestamp.proto";
+
+package car_service;
+
+message Car {
+  int64 id = 1;
+  string brand = 2;
+  string model = 3;
+  int32 year = 4;
+  string vin = 5;
+  string photo_url = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
