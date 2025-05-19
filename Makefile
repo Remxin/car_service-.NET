@@ -5,7 +5,8 @@ SERVICE_CSPROJ = auth-service/AuthService/AuthService.csproj \
 				email-service/EmailService/EmailService.csproj
 SERVICE_SLN = auth-service/AuthService.sln \
 				gateway/Gateway.sln \
-				email-service/EmailService.sln
+				email-service/EmailService.sln \
+
 
 				
 install-pkgs:
