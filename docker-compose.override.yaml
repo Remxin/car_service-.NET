@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+#   frontend:
+#     build:
+#       context: ./frontend
+#     ports:
+#       - "80:80"
+#     depends_on:
+#       - gateway
+
+#   gateway:
+#     build:
+#       context: ./gateway
+#     ports:
+#       - "8080:80"
+#     depends_on:
+#       - auth-service
+#       - workshop-service
+#     environment:
+#       - ASPNETCORE_ENVIRONMENT=Development
+#       - AuthService__Url=http://auth-service
+#       - WorkshopService__Url=http://workshop-service
+#       - ReportService__Url=http://report-service
+#       - EmailService__Url=http://email-service
+
+#   auth-service:
+#     build:
+#       context: ./auth-service
+#     depends_on:
+#       - auth-db
+#     environment:
+#       - ASPNETCORE_ENVIRONMENT=Development
+#       - ConnectionStrings__AuthDb=Server=auth-db;Database=AuthDb;User=postgres;Password=${POSTGRES_PASSWORD};TrustServerCertificate=True
+
+#   workshop-service:
+#     build:
+#       context: ./workshop-service
+#     depends_on:
+#       - workshop-db
+#       - auth-service
+#       - message-broker
+#     environment:
+#       - ASPNETCORE_ENVIRONMENT=Development
+#       - ConnectionStrings__WorkshopDb=Server=workshop-db;Database=WorkshopDb;User=postgres;Password=${POSTGRES_PASSWORD};TrustServerCertificate=True
+#       - RabbitMQ__Host=message-broker
+#       - AuthService__Url=http://auth-service
+
+  # report-service:
+  #   build:
+  #     context: ./report-service
+  #   depends_on:
+  #     - report-db
+  #     - message-broker
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - MongoDB__ConnectionString=mongodb://report-db:27017
+  #     - MongoDB__Database=ReportDb
+  #     - RabbitMQ__Host=message-broker
+
+  # email-service:
+  #   build:
+  #     context: ./email-service
+  #   depends_on:
+  #     - message-broker
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - RabbitMQ__Host=message-broker
+  #     - SmtpSettings__Host=${SMTP_HOST}
+  #     - SmtpSettings__Port=${SMTP_PORT}
+  #     - SmtpSettings__Username=${SMTP_USERNAME}
+  #     - SmtpSettings__Password=${SMTP_PASSWORD}
+
+  # auth-db:
+  #   ports:
+  #     - "5433:5432"
+
+  # workshop-db:
+  #   ports:
+  #     - "5434:5432"
+
+  # message-broker:
+  #   ports:
+  #     - "15672:15672"

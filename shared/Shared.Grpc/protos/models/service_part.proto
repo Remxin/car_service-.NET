@@ -1,0 +1,12 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Shared.Grpc.Models";
+
+package car_service;
+
+message ServicePart {
+  int32 id = 1;
+  int32 order_id = 2;
+  int32 vehicle_part_id = 3;
+  int32 quantity = 4;
+}

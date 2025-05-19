@@ -2,6 +2,8 @@
 ## .NET / C# Configuration
 ## =========================
 
+.env
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

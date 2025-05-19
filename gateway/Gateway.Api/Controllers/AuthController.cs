@@ -4,7 +4,7 @@ namespace Gateway.Api.Controllers;
 
 [ApiController]
 [Route("v1/auth")] // <-- wersja w URL
-[ApiVersion("1.0")] // <-- atrybut wersji
+// [ApiVersion("1.0")] // <-- atrybut wersji
 public class AuthController : ControllerBase {
     
     private static readonly string[] Summaries = new[]
