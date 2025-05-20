@@ -1,0 +1,190 @@
+syntax = "proto3";
+
+import "models/vehicle.proto";
+import "models/vehicle_part.proto";
+import "models/vehicle_image.proto";
+import "models/service_order.proto";
+import "models/service_task.proto";
+import "models/service_part.proto";
+import "models/service_comment.proto";
+import "models/service_complete_order.proto";
+import "models/service_order_with_vehicle.proto";
+
+option csharp_namespace = "Shared.Grpc.Messages";
+
+package car_service;
+
+import "google/protobuf/timestamp.proto";
+
+// for adding content
+
+message AddVehicleRequest {
+    string token = 1;
+    VehicleImage car_image = 2;
+    string brand = 3;
+    string model = 4;
+    int32 year = 5;
+    string vin = 6;
+}
+
+message AddVehicleResponse {
+    Vehicle vehicle = 1;
+    string message = 2;
+    bool success = 3;
+}
+
+message AddVehiclePartRequest {
+    string token = 1;
+    string name = 2;
+    string part_number = 3;
+    string description = 4;
+    double price = 5;
+    int32 available_quantity = 6;
+}
+
+message AddVehiclePartResponse {
+    bool success = 1;
+    string message = 2;
+    VehiclePart vehicle_part = 3;
+}
+
+message AddOrderRequest {
+    string token = 1;
+    int32 vehicle_id = 2;
+    string status = 3;
+    int32 assigned_mechanic_id = 4;
+}
+
+message AddOrderResponse {
+    bool success = 1;
+    string message = 2;
+    ServiceOrder service_order = 3;
+}
+
+message AddServiceTaskRequest {
+    string token = 1;
+    int32 order_id = 2;
+    string description = 3;
+    double labor_cost = 4;
+}
+
+
+message AddServiceTaskResponse {
+    bool success = 1;
+    string message = 2;
+    ServiceTask service_task = 3;
+}
+
+message AddServicePartRequest {
+    string token = 1;
+    int32 order_id = 2;
+    int32 vehicle_part_id = 3;
+    int32 quantity = 4;
+}
+
+message AddServicePartResponse {
+    bool success = 1;
+    string message = 2;
+    ServicePart service_part = 3;
+}
+
+message AddServiceCommentRequest {
+    string token = 1;
+    int32 order_id = 2;
+    string content = 3;
+}
+
+message AddServiceCommentResponse {
+    bool success = 1;
+    string message = 2;
+    ServiceComment service_comment = 3;
+}
+
+// for getting content
+
+message GetVehicleRequest {
+    string token = 1;
+    int32 vehicle_id = 2;
+}
+
+message GetVehicleResponse {
+    bool success = 1;
+    string message = 2;
+    Vehicle vehicle = 3;
+}
+
+message SearchVehiclesRequest {
+    string token = 1;
+    int32 page = 2;
+    int32 page_size = 3;
+    string brand = 4;
+    string model = 5;
+    int32 year = 6;
+    string vin = 7;
+}
+
+message SearchVehiclesResponse {
+    bool success = 1;
+    string message = 2;
+    repeated Vehicle vehicles = 3;
+    int32 total_count = 4;
+}
+
+message GetVehiclePartRequest {
+    string token = 1;
+    int32 vehicle_part_id = 2;
+}
+
+message GetVehiclePartResponse {
+    bool success = 1;
+    string message = 2;
+    VehiclePart vehicle_part = 3;
+}
+
+message SearchVehiclePartsRequest {
+    string token = 1;
+    int32 page = 2;
+    int32 page_size = 3;
+    string name = 4;
+    string part_number = 5;
+    string description = 6;
+    double price = 7;
+    int32 available_quantity = 8;
+}
+
+message SearchVehiclePartsResponse {
+    bool success = 1;
+    string message = 2;
+    repeated VehiclePart vehicle_part = 3;
+    int32 total_count = 4;
+}
+
+message GetOrderRequest {
+    string token = 1;
+    string service_order_id = 2;
+}
+
+message GetOrderResponse {
+    bool success = 1;
+    string message = 2;
+    ServiceCompleteOrder service_complete_order = 3;
+}
+
+message SearchOrdersRequest {
+    string token = 1;
+    int32 page = 2;
+    int32 page_size = 3;
+    string vehicle_vin = 4;
+    string vehicle_brand = 5;
+    string vehicle_model = 6;
+    int32 vehicle_year = 7;
+    google.protobuf.Timestamp created_after = 8;
+    google.protobuf.Timestamp created_before = 9;
+}
+
+message SearchOrdersResponse {
+    bool success = 1;
+    string message = 2;
+    repeated ServiceOrderWithVehicle service_orders = 3;
+    int32 total_count = 5;
+}

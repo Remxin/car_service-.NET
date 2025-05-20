@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="dotenv.net" Version="3.2.1" />
     <PackageReference Include="Grpc" Version="2.46.6" />
     <PackageReference Include="Grpc.Tools" Version="2.59.0" PrivateAssets="All" />
@@ -28,6 +29,11 @@
 <Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/models/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
 <Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/services/*.proto" GrpcServices="Server" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
 
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Converters\" />
+    <Folder Update="..\..\..\..\.nuget\packages\shared.grpc\1.0.1\contentFiles\any\protos\models" />
   </ItemGroup>
 
   <Target Name="ShowNuGetPackageRoot" BeforeTargets="Build">
