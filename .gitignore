@@ -128,4 +128,4 @@ docker-compose.override.yml
 *.log
 
 # Local database / cache
-data/
+# data/
