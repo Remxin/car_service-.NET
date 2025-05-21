@@ -29,7 +29,7 @@ artifacts/
 ScaffoldingReadMe.txt
 
 # NuGet
-*.nupkg
+# *.nupkg
 *.snupkg
 
 # Others
