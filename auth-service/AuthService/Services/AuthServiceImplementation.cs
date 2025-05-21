@@ -120,4 +120,34 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
         response.User = user.ToProtoDto();
         return response;
     }
+
+    public override async Task<VerifyActionResponse> VerifyAction(VerifyActionRequest request,
+        ServerCallContext context) {
+        var response = new VerifyActionResponse {
+            Message = "",
+            Allowed = false,
+        };
+        var tokenValid = _tokenService.VerifyToken(request.Token);
+        if (tokenValid == null) {
+            response.Message = "Invalid token";
+            return response;
+        }
+        
+        var userIdClaim = tokenValid.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim)) {
+            response.Message = "Invalid token claims";
+            return response;
+        }
+        
+        if (!int.TryParse(userIdClaim, out int userId)) {
+            response.Message = "Invalid user ID format in token";
+            return response;
+        }
+
+
+        
+        return response;
+
+    }
 }
