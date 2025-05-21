@@ -25,8 +25,8 @@ pack-pkgs:
 clean: 
 	@echo "Cleaning build artifacts..."
 	@rm -rf Shared/Shared.Grpc/obj
-	@rm -rf auth-service/AuthService/obj auth-service/AuthService/bin
-	@rm -rf gateway/Gateway.API/obj gateway/Gateway.API/bin
+	# @rm -rf auth-service/AuthService/obj auth-service/AuthService/bin
+	# @rm -rf gateway/Gateway.API/obj gateway/Gateway.API/bin
 
 
 # Restore packages
@@ -40,11 +40,11 @@ restore-pkgs:
 
 proto:
 	rm -rf Shared/Shared.Grpc/pb/*
-	@protoc --proto_path=Shared/protos \
+	@protoc --proto_path=Shared/Shared.Grpc/protos \
 			--csharp_out=Shared/Shared.Grpc/pb \
 			--grpc_out=Shared/Shared.Grpc/pb \
 			--plugin=protoc-gen-grpc=/usr/local/bin/grpc_csharp_plugin \
-			Shared/protos/**/*.proto 
+			Shared/Shared.Grpc/protos/**/*.proto 
 
 
 .PHONY: proto restore-pkgs pack-pkgs install-pkgs clean

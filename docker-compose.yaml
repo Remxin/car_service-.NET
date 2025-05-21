@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   message-broker:
     image: rabbitmq:3-management
     ports:
@@ -12,20 +10,21 @@ services:
   auth-db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=AuthDb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_DB: AuthDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - auth-db-data:/var/lib/postgresql/data
+      - ./infrastructure/sql/auth-scripts:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"
-  
+
   workshop-db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=WorkshopDb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_DB: WorkshopDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - workshop-db-data:/var/lib/postgresql/data
     ports:

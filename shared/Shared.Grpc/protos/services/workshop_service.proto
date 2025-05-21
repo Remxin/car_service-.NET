@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "messages/rpc_workshop_messages.proto";
+
+package car_service;
+option csharp_namespace = "Shared.Grpc.Services";
+
+service WorkshopService {
+  rpc AddVehicle(AddVehicleRequest) returns (AddVehicleResponse);
+  rpc AddVehiclePart (AddVehiclePartRequest) returns (AddVehiclePartResponse);
+  rpc AddOrder (AddOrderRequest) returns (AddOrderResponse);
+  rpc AddServiceTask (AddServiceTaskRequest) returns (AddServiceTaskResponse);
+  rpc AddServicePart (AddServicePartRequest) returns (AddServicePartResponse);
+  rpc AddServiceComment (AddServiceCommentRequest) returns (AddServiceCommentResponse);
+
+  rpc GetVehicle (GetVehicleRequest) returns (GetVehicleResponse);
+  rpc SearchVehicles (SearchVehiclesRequest) returns (SearchVehiclesResponse);
+  rpc GetVehiclePart (GetVehiclePartRequest) returns (GetVehiclePartResponse);
+  rpc SearchVehicleParts (SearchVehiclePartsRequest) returns (SearchVehiclePartsResponse);
+  rpc GetOrder (GetOrderRequest) returns (GetOrderResponse);
+  rpc SearchOrders (SearchOrdersRequest) returns (SearchOrdersResponse);
+
+}

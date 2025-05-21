@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "models/service_part.proto";
+import "models/service_task.proto";
+import "models/service_comment.proto";
+import "models/vehicle.proto";
+import "models/user.proto";
+
+option csharp_namespace = "Shared.Grpc.Models";
+
+package car_service;
+
+import "google/protobuf/timestamp.proto";
+
+message ServiceCompleteOrder {
+  int32 id = 1;
+  Vehicle vehicle = 2;
+  string status = 3;
+  User mechanic = 4;
+  repeated ServicePart service_parts = 5;
+  repeated ServiceTask service_tasks = 6;
+  repeated ServiceComment service_comment = 7;
+  google.protobuf.Timestamp created_at = 8;
+}

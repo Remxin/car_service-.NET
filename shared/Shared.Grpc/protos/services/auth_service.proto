@@ -9,4 +9,5 @@ service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc VerifyUser(VerifyUserRequest) returns (VerifyUserResponse);
+  rpc VerifyAction(VerifyActionRequest) returns (VerifyActionResponse);
 }
