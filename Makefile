@@ -48,7 +48,12 @@ proto:
 
 setup-environment:
 	@cp env.example .env
-	@for file in env/**/.env.example; do mv "$file" "${file%.env.example}.env"; done
+	@find env -type f -name '*.env.example' | while read -r file; do \
+		cp "$$file" "$${file%.env.example}.env"; \
+	done
+	@echo ".env files created successfuly - project ready to start"
+	@echo "use 'docker-compose up -d' command to start project"
+
 
 
 
