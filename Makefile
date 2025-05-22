@@ -46,5 +46,10 @@ proto:
 			--plugin=protoc-gen-grpc=/usr/local/bin/grpc_csharp_plugin \
 			Shared/Shared.Grpc/protos/**/*.proto 
 
+setup-environment:
+	@cp env.example .env
+	@for file in env/**/.env.example; do mv "$file" "${file%.env.example}.env"; done
 
-.PHONY: proto restore-pkgs pack-pkgs install-pkgs clean
+
+
+.PHONY: proto restore-pkgs pack-pkgs install-pkgs clean setup-environment

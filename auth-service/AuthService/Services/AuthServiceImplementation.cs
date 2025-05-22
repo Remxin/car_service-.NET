@@ -145,8 +145,24 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
             return response;
         }
 
+        var isPermitted = await _dbContext.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Join(_dbContext.RolePermissions,
+                ur => ur.RoleId,
+                rp => rp.RoleId,
+                (ur, rp) => rp.PermissionId)
+            .Join(_dbContext.Permissions,
+                pid => pid,
+                p => p.Id,
+                (pid, p) => p)
+            .AnyAsync(p => p.Name == request.Action);
 
-        
+        if (!isPermitted) {
+            response.Message = "Forbidden";
+            return response;
+        }
+        response.Allowed = isPermitted;
+        response.Message = "Authorized";
         return response;
 
     }

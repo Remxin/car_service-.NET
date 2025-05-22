@@ -6,6 +6,18 @@ using Microsoft.EntityFrameworkCore;
 var config = new EnvConfig();
 
 var builder = WebApplication.CreateBuilder(args);
+var portStr = config.AuthServicePort ?? "5005";
+if (!int.TryParse(portStr, out var port)) {
+    port = 5005;
+}
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(port, listenOptions =>
+    {
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+    });
+});
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(config.DbConnectionString));
 
@@ -33,12 +45,12 @@ using (var scope = app.Services.CreateScope())
 
 
 // Konfiguracja HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.MapGrpcReflectionService();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// if (app.Environment.IsDevelopment())
+// {
+app.MapGrpcReflectionService();
+app.UseSwagger();
+app.UseSwaggerUI();
+// }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

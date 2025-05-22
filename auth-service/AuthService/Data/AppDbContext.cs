@@ -8,23 +8,72 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<UserEntity> Users => Set<UserEntity>();
 
-    public DbSet<Role> Roles => Set<Role>();
-    public DbSet<Permission> Permissions => Set<Permission>();
-    public DbSet<UserRole> UserRoles => Set<UserRole>();
-    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<RoleEntity> Roles => Set<RoleEntity>();
+    public DbSet<PermissionEntity> Permissions => Set<PermissionEntity>();
+    public DbSet<UserRoleEntity> UserRoles => Set<UserRoleEntity>();
+    public DbSet<RolePermissionEntity> RolePermissions => Set<RolePermissionEntity>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UserRole>()
-            .HasKey(ur => new { ur.UserId, ur.RoleId });
 
-        modelBuilder.Entity<RolePermission>()
-            .HasKey(rp => new { rp.RoleId, rp.PermissionId });
+        modelBuilder.Entity<RolePermissionEntity>(entity =>
+        {
+            entity.ToTable("role_permissions");
 
-        modelBuilder.Entity<Role>().ToTable("roles");
-        modelBuilder.Entity<Permission>().ToTable("permissions");
-        modelBuilder.Entity<UserRole>().ToTable("user_roles");
-        modelBuilder.Entity<RolePermission>().ToTable("role_permissions");
+            entity.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+            entity.Property(rp => rp.RoleId).HasColumnName("role_id");
+            entity.Property(rp => rp.PermissionId).HasColumnName("permission_id");
+
+            entity.HasOne(rp => rp.Role)
+                .WithMany(r => r.RolePermissions)
+                .HasForeignKey(rp => rp.RoleId);
+
+            entity.HasOne(rp => rp.Permission)
+                .WithMany(p => p.RolePermissions)
+                .HasForeignKey(rp => rp.PermissionId);
+        });
+
+
+        modelBuilder.Entity<RoleEntity>(entity =>
+        {
+            entity.ToTable("roles");
+            entity.HasKey(r => r.Id);
+
+            entity.Property(r => r.Id).HasColumnName("id");
+            entity.Property(r => r.Name).HasColumnName("name");
+            entity.Property(r => r.Description).HasColumnName("description");
+        });
+
+        modelBuilder.Entity<PermissionEntity>(entity =>
+        {
+            entity.ToTable("permissions");
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.Id).HasColumnName("id");
+            entity.Property(p => p.Name).HasColumnName("name");
+            entity.Property(p => p.Description).HasColumnName("description");
+        });
+
+        modelBuilder.Entity<UserRoleEntity>(entity =>
+        {
+            entity.ToTable("user_roles");
+
+            entity.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            entity.Property(ur => ur.UserId).HasColumnName("user_id");
+            entity.Property(ur => ur.RoleId).HasColumnName("role_id");
+
+            entity.HasOne(ur => ur.User)
+                .WithMany(u => u.UserRoles)
+                .HasForeignKey(ur => ur.UserId);
+
+            entity.HasOne(ur => ur.Role)
+                .WithMany(r => r.UserRoles)
+                .HasForeignKey(ur => ur.RoleId);
+        });
+
 
         modelBuilder.Entity<UserEntity>(entity =>
         {
