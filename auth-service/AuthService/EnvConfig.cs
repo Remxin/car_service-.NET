@@ -6,6 +6,7 @@ public class EnvConfig
 {
     public string DbConnectionString { get; }
     public string JwtSecretKey { get; }
+    public string AuthServicePort { get; }
 
     public EnvConfig()
     {
@@ -18,6 +19,10 @@ public class EnvConfig
         JwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
         if (string.IsNullOrWhiteSpace(JwtSecretKey))
             throw new Exception("Brak lub pusta zmienna środowiskowa JWT_SECRET_KEY!");
+
+        AuthServicePort = Environment.GetEnvironmentVariable("AUTH_SERVICE_PORT");
+        if (string.IsNullOrWhiteSpace(JwtSecretKey))
+            throw new Exception("Brak lub pusta zmienna środowiskowa AUTH_SERVICE_PORT!");
 
     }
 }

@@ -2,39 +2,52 @@
   message-broker:
     image: rabbitmq:3-management
     ports:
-      - "15672:15672"
+      - "${MESSAGE_BROKER_PORT}:15672"
     volumes:
       - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
       - rabbitmq-data:/var/lib/rabbitmq
 
   auth-db:
     image: postgres:15
-    environment:
-      POSTGRES_DB: AuthDb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - ./env/auth-db/auth-db.env
     volumes:
       - auth-db-data:/var/lib/postgresql/data
       - ./infrastructure/sql/auth-scripts:/docker-entrypoint-initdb.d
     ports:
-      - "5433:5432"
+      - "${AUTH_DB_PORT}:5432"
 
   workshop-db:
     image: postgres:15
-    environment:
-      POSTGRES_DB: WorkshopDb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - ./env/workshop-db/workshop-db.env
     volumes:
       - workshop-db-data:/var/lib/postgresql/data
       - ./infrastructure/sql/workshop-scripts:/docker-entrypoint-initdb.d
     ports:
-      - "5434:5432"
+      - "${WORKSHOP_DB_PORT}:5432"
 
   report-db:
     image: mongo:latest
     volumes:
       - report-db-data:/data/db
+
+  auth-service:
+    depends_on:
+      - auth-db
+    build:
+      context: .
+      dockerfile: auth-service/AuthService/Dockerfile
+    env_file:
+      - ./env/auth-service/auth.prod.env
+    environment:
+      - ASPNETCORE_URLS=http://+:${AUTH_SERVICE_PORT}
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    entrypoint: ["/wait-for-it.sh", "auth-db", "5432", "--", "dotnet", "AuthService.dll"]
+
 
 volumes:
   auth-db-data:

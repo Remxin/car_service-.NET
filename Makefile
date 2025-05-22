@@ -46,5 +46,15 @@ proto:
 			--plugin=protoc-gen-grpc=/usr/local/bin/grpc_csharp_plugin \
 			Shared/Shared.Grpc/protos/**/*.proto 
 
+setup-environment:
+	@cp env.example .env
+	@find env -type f -name '*.env.example' | while read -r file; do \
+		cp "$$file" "$${file%.env.example}.env"; \
+	done
+	@echo ".env files created successfuly - project ready to start"
+	@echo "use 'docker-compose up -d' command to start project"
 
-.PHONY: proto restore-pkgs pack-pkgs install-pkgs clean
+
+
+
+.PHONY: proto restore-pkgs pack-pkgs install-pkgs clean setup-environment
