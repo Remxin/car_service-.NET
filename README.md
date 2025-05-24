@@ -32,3 +32,12 @@ Web application designed specifically for car service management.
 | **Message Broker** | RabbitMQ          | - Queueing and processing report generation requests<br>- Receiving and distributing report status updates<br>- Triggering email notifications once reports are generated<br>- Ensures reliability and scalability by decoupling processes |
 | **Report Service**| C#                 | - Manages and generates reports |
 | **Email Service** | C#                 | - Sends emails (e.g., notifications after report generation) |
+
+
+## Start Developement 🚀
+```
+make setup-dev-environment
+make setup-environment
+
+docker-compose up -d
+```

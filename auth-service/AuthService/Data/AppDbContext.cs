@@ -88,5 +88,64 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .ValueGeneratedOnAdd()
                 .HasColumnType("timestamp without time zone");
         });
+
+        modelBuilder.Entity<ServiceOrderEntity>(entity =>
+        {
+            entity.ToTable("service_orders");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.VehicleId).HasColumnName("vehicle_id");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.AssignedMechanicId).HasColumnName("assigned_mechanic_id");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("now()")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp without time zone");
+
+            entity.HasOne(e => e.Vehicle)
+                .WithMany(v => v.ServiceOrders)
+                .HasForeignKey(e => e.VehicleId);
+        });
+
+        modelBuilder.Entity<ServiceTaskEntity>(entity =>
+        {
+            entity.ToTable("service_tasks");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.LaborCost).HasColumnName("labor_cost").HasColumnType("decimal(10,2)");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("now()")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp without time zone");
+
+            entity.HasOne(e => e.Order)
+                .WithMany(o => o.ServiceTasks)
+                .HasForeignKey(e => e.OrderId);
+        });
+
+        modelBuilder.Entity<ServicePartEntity>(entity =>
+        {
+            entity.ToTable("service_parts");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.VehiclePartId).HasColumnName("vehicle_part_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+
+            entity.HasOne(e => e.Order)
+                .WithMany(o => o.ServiceParts)
+                .HasForeignKey(e => e.OrderId);
+
+            entity.HasOne(e => e.VehiclePart)
+                .WithMany(p => p.ServiceParts)
+                .HasForeignKey(e => e.VehiclePartId);
+        });
+
+
+
     }
 }

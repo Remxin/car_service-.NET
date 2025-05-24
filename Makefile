@@ -52,9 +52,14 @@ setup-environment:
 		cp "$$file" "$${file%.env.example}.env"; \
 	done
 	@echo ".env files created successfuly - project ready to start"
-	@echo "use 'docker-compose up -d' command to start project"
+	@echo "use 'docker-compose up -d' command to start project 🚀"
+
+setup-dev-environment:
+	@cp auth-service/AuthService/env.example auth-service/AuthService/.env
+	@cp workshop-service/WorkshopService/env.example workshop-service/WorkshopService/.env
+	@echo "Services ready to develop 💻"
 
 
 
 
-.PHONY: proto restore-pkgs pack-pkgs install-pkgs clean setup-environment
+.PHONY: proto restore-pkgs pack-pkgs install-pkgs clean setup-environment setup-dev-environment
