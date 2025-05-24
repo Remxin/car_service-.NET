@@ -3,9 +3,12 @@
     image: rabbitmq:3-management
     ports:
       - "${MESSAGE_BROKER_PORT}:15672"
+      - "${MESSAGE_BROKER_COMMUNICATION_PORT}:5672"
     volumes:
       - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
       - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
 
   auth-db:
     image: postgres:15
