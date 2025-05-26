@@ -51,6 +51,32 @@
       - ./wait-for-it.sh:/wait-for-it.sh
     entrypoint: ["/wait-for-it.sh", "auth-db", "5432", "--", "dotnet", "AuthService.dll"]
 
+  workshop-service:
+    depends_on:
+      - auth-service
+      - message-broker
+      - workshop-db
+    build:
+      context: .
+      dockerfile: workshop-service/WorkshopService/Dockerfile
+    env_file:
+      ./env/workshop-service/workshop.prod.env
+    environment:
+      - ASPNETCORE_URLS=http://+:${WORKSHOP_SERVICE_PORT}
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    ports:
+      - "${WORKSHOP_SERVICE_PORT}:${WORKSHOP_SERVICE_PORT}"
+    entrypoint: 
+        - /bin/bash
+        - -c
+        - |
+          /wait-for-it.sh workshop-db 5432 -- \
+          && /wait-for-it.sh message-broker 5672 -- \
+          && /wait-for-it.sh auth-service ${AUTH_SERVICE_PORT} -- \
+          && dotnet WorkshopService.dll
+
+
 
 volumes:
   auth-db-data:
