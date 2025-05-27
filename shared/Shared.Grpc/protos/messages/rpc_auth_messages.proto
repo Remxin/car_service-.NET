@@ -1,6 +1,7 @@
 ﻿syntax = "proto3";
 
 import "models/user_dto.proto";
+import "models/user_with_roles.proto";
 
 option csharp_namespace = "Shared.Grpc.Messages";
 
@@ -51,5 +52,35 @@ message VerifyActionRequest {
 
 message VerifyActionResponse {
   bool allowed = 1;
+  string message = 2;
+}
+
+message GetUsersWithRolesRequest {
+  string token = 1;
+}
+
+message GetUsersWithRolesResponse {
+   repeated UserWithRoles users_with_roles = 1;
+}
+
+message AddRoleRequest {
+  string token = 1;
+  string user_id = 2;
+  string role_id = 3;
+}
+
+message AddRoleResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message RemoveRoleRequest {
+  string token = 1;
+  string user_id = 2;
+  string role_id = 3;
+}
+
+message RemoveRoleResponse {
+  bool success = 1;
   string message = 2;
 }
