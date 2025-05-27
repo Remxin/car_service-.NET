@@ -25,8 +25,8 @@ pack-pkgs:
 clean: 
 	@echo "Cleaning build artifacts..."
 	@rm -rf Shared/Shared.Grpc/obj
-	# @rm -rf auth-service/AuthService/obj auth-service/AuthService/bin
-	# @rm -rf gateway/Gateway.API/obj gateway/Gateway.API/bin
+	@rm -rf auth-service/AuthService/obj auth-service/AuthService/bin
+	@rm -rf gateway/Gateway.API/obj gateway/Gateway.API/bin
 
 
 # Restore packages
