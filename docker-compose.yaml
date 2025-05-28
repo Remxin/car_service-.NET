@@ -32,6 +32,11 @@
 
   report-db:
     image: mongo:latest
+    ports:
+      - "${REPORT_DB_PORT}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secret123
     volumes:
       - report-db-data:/data/db
 

@@ -74,6 +74,15 @@
       "arguments": {}
     },
     {
+      "name": "email.events.exchange",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
       "name": "email.notifications.exchange",
       "vhost": "/",
       "type": "direct",
