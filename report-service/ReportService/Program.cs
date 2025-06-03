@@ -5,9 +5,12 @@ using ReportService.Services;
 using System.Linq.Expressions;
 using MongoDB.Driver;
 using ReportService.Entities;
+using QuestPDF.Infrastructure;
+using Serilog;
 
 
 var config = new EnvConfig();
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 var portStr = config.ReportServicePort ?? "5007";
@@ -15,9 +18,16 @@ if (!int.TryParse(portStr, out var port)) {
     port = 5007;
 }
 
+
+
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Information);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -52,7 +62,24 @@ builder.Services.AddSingleton<IConnection>(sp => {
     }
 });
 builder.Services.AddSingleton<ReportServiceEventSubscriber>();
-builder.Services.AddSingleton<IReportServiceEventPublisher, ReportServiceEventPublisher>();
+builder.Services.AddSingleton<ReportServiceEventPublisher>();
+builder.Services.AddSingleton<BlobStorageService>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<BlobStorageService>>();
+    return new BlobStorageService(
+        config.AzureBlobConnectionString,
+        config.AzureBlobContainerName,
+        logger
+    );
+});
+
+builder.Services.AddSingleton<PdfGeneratorService>(provider =>
+{
+    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "GeneratedPdfs");
+    var logger = provider.GetRequiredService<ILogger<PdfGeneratorService>>();
+    return new PdfGeneratorService(folderPath, logger);
+});
+builder.Services.AddHostedService<OldReportCleanupService>();
 
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
@@ -61,12 +88,10 @@ var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Application Started");
 
-using (var scope = app.Services.CreateScope())
-{
+using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
     try
     {
-        _ = db.Reports.CountDocuments(Builders<ReportEntity>.Filter.Empty);
         logger.LogInformation("✅ Connected to MongoDB");
     }
     catch (Exception ex)

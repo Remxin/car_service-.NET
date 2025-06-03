@@ -13,7 +13,7 @@ public interface IReportServiceEventPublisher
 public class ReportServiceEventPublisher : IReportServiceEventPublisher {
     private readonly IConnection _connection;
     private readonly IModel _channel;
-    private const string ExchangeName = "email.events.exchange";
+    private const string ExchangeName = "email.notifications.exchange";
     
     public ReportServiceEventPublisher(IConnection connection)
     {
