@@ -2,7 +2,6 @@ syntax = "proto3";
 
 import "models/vehicle.proto";
 import "models/vehicle_part.proto";
-import "models/vehicle_image.proto";
 import "models/service_order.proto";
 import "models/service_task.proto";
 import "models/service_part.proto";
@@ -19,12 +18,11 @@ import "google/protobuf/timestamp.proto";
 // for adding content
 
 message AddVehicleRequest {
-    string token = 1;
-    VehicleImage car_image = 2;
-    string brand = 3;
-    string model = 4;
-    int32 year = 5;
-    string vin = 6;
+    string car_image_url = 1;
+    string brand = 2;
+    string model = 3;
+    int32 year = 4;
+    string vin = 5;
 }
 
 message AddVehicleResponse {
@@ -34,12 +32,11 @@ message AddVehicleResponse {
 }
 
 message AddVehiclePartRequest {
-    string token = 1;
-    string name = 2;
-    string part_number = 3;
-    string description = 4;
-    double price = 5;
-    int32 available_quantity = 6;
+    string name = 1;
+    string part_number = 2;
+    string description = 3;
+    double price = 4;
+    int32 available_quantity = 5;
 }
 
 message AddVehiclePartResponse {
@@ -49,10 +46,9 @@ message AddVehiclePartResponse {
 }
 
 message AddOrderRequest {
-    string token = 1;
-    int32 vehicle_id = 2;
-    string status = 3;
-    int32 assigned_mechanic_id = 4;
+    int32 vehicle_id = 1;
+    string status = 2;
+    int32 assigned_mechanic_id = 3;
 }
 
 message AddOrderResponse {
@@ -62,12 +58,10 @@ message AddOrderResponse {
 }
 
 message AddServiceTaskRequest {
-    string token = 1;
-    int32 order_id = 2;
-    string description = 3;
-    double labor_cost = 4;
+    int32 order_id = 1;
+    string description = 2;
+    double labor_cost = 3;
 }
-
 
 message AddServiceTaskResponse {
     bool success = 1;
@@ -76,10 +70,9 @@ message AddServiceTaskResponse {
 }
 
 message AddServicePartRequest {
-    string token = 1;
-    int32 order_id = 2;
-    int32 vehicle_part_id = 3;
-    int32 quantity = 4;
+    int32 order_id = 1;
+    int32 vehicle_part_id = 2;
+    int32 quantity = 3;
 }
 
 message AddServicePartResponse {
@@ -89,9 +82,8 @@ message AddServicePartResponse {
 }
 
 message AddServiceCommentRequest {
-    string token = 1;
-    int32 order_id = 2;
-    string content = 3;
+    int32 order_id = 1;
+    string content = 2;
 }
 
 message AddServiceCommentResponse {
@@ -103,8 +95,7 @@ message AddServiceCommentResponse {
 // for getting content
 
 message GetVehicleRequest {
-    string token = 1;
-    int32 vehicle_id = 2;
+    int32 vehicle_id = 1;
 }
 
 message GetVehicleResponse {
@@ -114,13 +105,12 @@ message GetVehicleResponse {
 }
 
 message SearchVehiclesRequest {
-    string token = 1;
-    int32 page = 2;
-    int32 page_size = 3;
-    string brand = 4;
-    string model = 5;
-    int32 year = 6;
-    string vin = 7;
+    int32 page = 1;
+    int32 page_size = 2;
+    string brand = 3;
+    string model = 4;
+    int32 year = 5;
+    string vin = 6;
 }
 
 message SearchVehiclesResponse {
@@ -131,8 +121,7 @@ message SearchVehiclesResponse {
 }
 
 message GetVehiclePartRequest {
-    string token = 1;
-    int32 vehicle_part_id = 2;
+    int32 vehicle_part_id = 1;
 }
 
 message GetVehiclePartResponse {
@@ -142,14 +131,13 @@ message GetVehiclePartResponse {
 }
 
 message SearchVehiclePartsRequest {
-    string token = 1;
-    int32 page = 2;
-    int32 page_size = 3;
-    string name = 4;
-    string part_number = 5;
-    string description = 6;
-    double price = 7;
-    int32 available_quantity = 8;
+    int32 page = 1;
+    int32 page_size = 2;
+    string name = 3;
+    string part_number = 4;
+    string description = 5;
+    double price = 6;
+    int32 available_quantity = 7;
 }
 
 message SearchVehiclePartsResponse {
@@ -160,8 +148,7 @@ message SearchVehiclePartsResponse {
 }
 
 message GetOrderRequest {
-    string token = 1;
-    string service_order_id = 2;
+    string service_order_id = 1;
 }
 
 message GetOrderResponse {
@@ -171,20 +158,19 @@ message GetOrderResponse {
 }
 
 message SearchOrdersRequest {
-    string token = 1;
-    int32 page = 2;
-    int32 page_size = 3;
-    string vehicle_vin = 4;
-    string vehicle_brand = 5;
-    string vehicle_model = 6;
-    int32 vehicle_year = 7;
-    google.protobuf.Timestamp created_after = 8;
-    google.protobuf.Timestamp created_before = 9;
+    int32 page = 1;
+    int32 page_size = 2;
+    string vehicle_vin = 3;
+    string vehicle_brand = 4;
+    string vehicle_model = 5;
+    int32 vehicle_year = 6;
+    google.protobuf.Timestamp created_after = 7;
+    google.protobuf.Timestamp created_before = 8;
 }
 
 message SearchOrdersResponse {
     bool success = 1;
     string message = 2;
     repeated ServiceOrderWithVehicle service_orders = 3;
-    int32 total_count = 5;
+    int32 total_count = 4;
 }
