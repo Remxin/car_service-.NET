@@ -26,10 +26,6 @@ builder.WebHost.ConfigureKestrel(options =>
     });
 });
 
-builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
-    options.Address = new Uri(config.AuthServiceUrl);
-});
-
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(config.DbConnectionString));
 
 
