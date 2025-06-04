@@ -23,15 +23,7 @@ public class WorkshopServiceImplementation(
             Message = "",
             ServiceOrder = null,
         };
-
-        var valiationResponse = await _authService.VerifyActionAsync(new VerifyActionRequest {
-            Token = request.Token,
-            Action = "create_service_order",
-        });
-        if (!valiationResponse.Allowed) {
-            response.Message = valiationResponse.Message;
-            return response;
-        }
+        
 
         var order = new ServiceOrderEntity {
             VehicleId = request.VehicleId,
