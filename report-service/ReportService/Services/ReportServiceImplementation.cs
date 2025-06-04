@@ -13,12 +13,14 @@ public class ReportServiceImplementation(
     BlobStorageService blobStorageService,
     MongoDbContext mongoDbContext,
     PdfGeneratorService pdfGeneratorService,
-    ReportServiceEventPublisher reportServiceEventPublisher
+    ReportServiceEventPublisher reportServiceEventPublisher,
+    ILogger<ReportServiceImplementation> logger
     ) : Shared.Grpc.Services.ReportService.ReportServiceBase {
     private readonly BlobStorageService _blobStorageService = blobStorageService;
     private readonly MongoDbContext _mongoDbContext = mongoDbContext;
     private readonly PdfGeneratorService _pdfGeneratorService = pdfGeneratorService;
     private readonly ReportServiceEventPublisher _reportServiceEventPublisher = reportServiceEventPublisher;
+    private readonly ILogger<ReportServiceImplementation> _logger = logger;
     
     public override async Task<GetReportDownloadLinkResponse> GetReportDownloadLink(GetReportDownloadLinkRequest request,
         ServerCallContext context) {
@@ -86,6 +88,13 @@ public class ReportServiceImplementation(
         
         await _mongoDbContext.Reports.UpdateOneAsync(filter, update);
         
+        try {
+            File.Delete(reportFilePath);
+        }
+        catch (Exception ex) {
+            _logger.LogWarning(ex, $"Could not delete temporary file: {reportFilePath}");
+        }
+        _logger.LogInformation($"Generated report: {report.ReportUrl}");
         response.Status = report.Status;
         return response;
     }
@@ -96,8 +105,9 @@ public class ReportServiceImplementation(
             Message = "Unknown error",
             Success = false,
         };
-        
-        var report = await _mongoDbContext.Reports.Find(r => r.OrderId == int.Parse(request.ReportId)).FirstOrDefaultAsync();
+
+        var report = await _mongoDbContext.Reports.Find(r => r.OrderId == int.Parse(request.ReportId))
+            .FirstOrDefaultAsync();
         if (report == null) {
             response.Message = "Not found";
             return response;
@@ -105,15 +115,28 @@ public class ReportServiceImplementation(
 
         if (string.IsNullOrEmpty(report.ReportUrl)) {
             response.Message = "Report is not generated";
+            return response;
         }
 
-        var users = await _mongoDbContext.Users
-            .Find(u => request.UsersIds.Contains(u.Id.ToString()))
-            .ToListAsync();
+        List<UserEntity> users;
+        if (request.UsersIds == null || request.UsersIds.Count == 0) {
+            users = await _mongoDbContext.Users
+                .Find(u => u.UserRoles.Any(r => r.Name == "admin"))
+                .ToListAsync();
+        }
+        else {
+            users = await _mongoDbContext.Users
+                .Find(u => request.UsersIds.Contains(u.Id.ToString()))
+                .ToListAsync();
+        }
+        var userEmailsAndNames = users.Select(u => new {
+            Email = u.Email,
+            Name = u.Name
+        }).ToList();
         
         var mqMessage = new {
             ReportUrl = report.ReportUrl,
-            Receivers = users
+            Receivers = userEmailsAndNames
         };
         
         _reportServiceEventPublisher.PublishEvent("email.send.report_email", mqMessage);
