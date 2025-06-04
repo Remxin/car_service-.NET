@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "messages/rpc_report_messages.proto";
+
+package car_service;
+option csharp_namespace = "Shared.Grpc.Services";
+
+service ReportService {
+    rpc GenerateReport (GenerateReportRequest) returns (GenerateReportResponse);
+    rpc GetReportStatus (GetReportStatusRequest) returns (GetReportStatusResponse);
+    rpc GetReportDownloadLink (GetReportDownloadLinkRequest) returns (GetReportDownloadLinkResponse);
+    rpc SendEmailWithReport (SendEmailWithReportRequest) returns (SendEmailWithReportResponse);
+  }

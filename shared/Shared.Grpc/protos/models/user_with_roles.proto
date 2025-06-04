@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "Shared.Grpc.Models";
+
+import "models/user_dto.proto";
+import "models/role.proto";
+
+package car_service;
+
+message UserWithRoles {
+  UserDto user = 1;
+  repeated Role role_name = 2;
+}

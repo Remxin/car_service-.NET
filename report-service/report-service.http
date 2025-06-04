@@ -1,6 +1,0 @@
-@report_service_HostAddress = http://localhost:5220
-
-GET {{report_service_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
