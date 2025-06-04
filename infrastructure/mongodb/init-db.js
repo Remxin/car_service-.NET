@@ -1,4 +1,4 @@
-db = db.getSiblingDB('reportDb'); // przełącz na bazę reportDb
+db = db.getSiblingDB('reportDb');
 
 db.createCollection('reports')
 db.createCollection('users')

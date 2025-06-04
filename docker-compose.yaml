@@ -105,6 +105,23 @@
           && /wait-for-it.sh message-broker 5672 -- \
           && dotnet ReportService.dll
 
+  email-service:
+    depends_on:
+      - message-broker
+    build:
+      context: .
+      dockerfile: email-service/EmailService/Dockerfile
+    env_file:
+      ./env/email-service/email.prod.env
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    entrypoint: 
+      - /bin/bash
+      - -c
+      - |
+        /wait-for-it.sh message-broker 5672 -- \
+        && dotnet EmailService.dll
+
 
 
 volumes:

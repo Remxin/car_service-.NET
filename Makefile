@@ -51,7 +51,15 @@ setup-environment:
 	@find env -type f -name '*.env.example' | while read -r file; do \
 		cp "$$file" "$${file%.env.example}.env"; \
 	done
-	@echo "WARNING! need to manually provide:\n1.report-service\n\tAZURE_BLOB_CONN_STR\n\tAZURE_BLOB_CONTAINER_NAME"
+	@echo "WARNING! need to manually provide:"
+	@echo "1. report-service"
+	@echo "   AZURE_BLOB_CONN_STR"
+	@echo "   AZURE_BLOB_CONTAINER_NAME"
+	@echo "2. email-service"
+	@echo "   AZURE_BLOB_CONN_STR"
+	@echo "   AZURE_BLOB_CONTAINER_NAME"
+	@echo "   EMAIL_USER"
+	@echo "   EMAIL_PASSWORD"
 	@echo ".env files created successfuly - project ready to start"
 	@echo "use 'docker-compose up -d' command to start project 🚀"
 
@@ -59,6 +67,7 @@ setup-dev-environment:
 	@cp auth-service/AuthService/env.example auth-service/AuthService/.env
 	@cp workshop-service/WorkshopService/env.example workshop-service/WorkshopService/.env
 	@cp report-service/ReportService/env.example report-service/ReportService/.env
+	@cp email-service/EmailService/env.example email-service/EmailService/.env
 	@echo "Services ready to develop 💻"
 
 
