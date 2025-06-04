@@ -10,4 +10,7 @@ service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc VerifyUser(VerifyUserRequest) returns (VerifyUserResponse);
   rpc VerifyAction(VerifyActionRequest) returns (VerifyActionResponse);
+  rpc GetUsersWithRoles (GetUsersWithRolesRequest) returns (GetUsersWithRolesResponse);
+  rpc AddRole (AddRoleRequest) returns (AddRoleResponse);
+  rpc RemoveRole (RemoveRoleRequest) returns (RemoveRoleResponse);
 }

@@ -25,8 +25,8 @@ pack-pkgs:
 clean: 
 	@echo "Cleaning build artifacts..."
 	@rm -rf Shared/Shared.Grpc/obj
-	# @rm -rf auth-service/AuthService/obj auth-service/AuthService/bin
-	# @rm -rf gateway/Gateway.API/obj gateway/Gateway.API/bin
+	@rm -rf auth-service/AuthService/obj auth-service/AuthService/bin
+	@rm -rf gateway/Gateway.API/obj gateway/Gateway.API/bin
 
 
 # Restore packages
@@ -51,12 +51,14 @@ setup-environment:
 	@find env -type f -name '*.env.example' | while read -r file; do \
 		cp "$$file" "$${file%.env.example}.env"; \
 	done
+	@echo "WARNING! need to manually provide:\n1.report-service\n\tAZURE_BLOB_CONN_STR\n\tAZURE_BLOB_CONTAINER_NAME"
 	@echo ".env files created successfuly - project ready to start"
 	@echo "use 'docker-compose up -d' command to start project 🚀"
 
 setup-dev-environment:
 	@cp auth-service/AuthService/env.example auth-service/AuthService/.env
 	@cp workshop-service/WorkshopService/env.example workshop-service/WorkshopService/.env
+	@cp report-service/ReportService/env.example report-service/ReportService/.env
 	@echo "Services ready to develop 💻"
 
 
