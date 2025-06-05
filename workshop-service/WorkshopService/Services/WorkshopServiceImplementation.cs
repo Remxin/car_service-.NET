@@ -166,6 +166,72 @@ public class WorkshopServiceImplementation(
         return response;
     }
     
+    public override async Task<AddServicePartResponse> AddServicePart(AddServicePartRequest request, ServerCallContext context)
+    {
+        var response = new AddServicePartResponse
+        {
+            Success = false,
+            Message = ""
+        };
+
+        try
+        {
+            var entity = new ServicePartEntity
+            {
+                OrderId         = request.OrderId,
+                VehiclePartId   = request.VehiclePartId,
+                Quantity        = request.Quantity
+            };
+
+            var created = _dbContext.ServiceParts.Add(entity);
+            await _dbContext.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Service part added successfully";
+            response.ServicePart = ServicePartMapper.ToProto(created.Entity);
+        }
+        catch (Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to add service part");
+        }
+
+        return response;
+    }
+    
+    public override async Task<AddServiceCommentResponse> AddServiceComment(AddServiceCommentRequest request, ServerCallContext context)
+    {
+        var response = new AddServiceCommentResponse
+        {
+            Success = false,
+            Message = ""
+        };
+
+        try
+        {
+            var entity = new ServiceCommentEntity
+            {
+                OrderId     = request.OrderId,
+                Content     = request.Content,
+                CreatedAt   = DateTime.UtcNow
+            };
+
+            var created = _dbContext.ServiceComments.Add(entity);
+            await _dbContext.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Service comment added successfully";
+            response.ServiceComment = ServiceCommentMapper.ToProto(created.Entity);
+        }
+        catch (Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to add service comment");
+        }
+
+        return response;
+    }
+    
     
 
 
