@@ -122,6 +122,29 @@
         /wait-for-it.sh message-broker 5672 -- \
         && dotnet EmailService.dll
 
+  file-upload-service:
+    platform: linux/amd64 
+    depends_on:
+      - auth-service
+    build:
+      context: .
+      dockerfile: file-upload-service/FileUploadService/Dockerfile
+    env_file:
+      ./env/file-upload-service/file-upload.prod.env
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+      - file-upload-uploads:/app/Uploads 
+    environment:
+      - ASPNETCORE_URLS=http://+:${FILE_UPLOAD_SERVICE_PORT}
+    ports:
+      - "${FILE_UPLOAD_SERVICE_PORT}:${FILE_UPLOAD_SERVICE_PORT}"
+    entrypoint: 
+      - /bin/bash
+      - -c
+      - |
+        /wait-for-it.sh auth-service ${AUTH_SERVICE_PORT} -- \
+        && dotnet FileUploadService.dll
+
 
 
 volumes:
@@ -129,3 +152,4 @@ volumes:
   workshop-db-data:
   report-db-data:
   rabbitmq-data:
+  file-upload-uploads:
