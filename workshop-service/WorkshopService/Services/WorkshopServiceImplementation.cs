@@ -5,6 +5,8 @@ using WorkshopService.Data;
 using WorkshopService.Entities;
 using WorkshopService.Mappers;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace WorkshopService.Services;
 
@@ -30,6 +32,7 @@ public class WorkshopServiceImplementation(
 
         try
         {
+            
             var order = new ServiceOrderEntity
             {
                 VehicleId = request.VehicleId,
@@ -129,5 +132,42 @@ public class WorkshopServiceImplementation(
         
         return response;
     }
+    
+    public override async Task<AddServiceTaskResponse> AddServiceTask(AddServiceTaskRequest request, ServerCallContext context)
+    {
+        var response = new AddServiceTaskResponse
+        {
+            Success = false,
+            Message = ""
+        };
+
+        try
+        {
+            var entity = new ServiceTaskEntity
+            {
+                OrderId     = request.OrderId,
+                Description = request.Description,
+                LaborCost   = request.LaborCost
+            };
+
+            var created = _dbContext.ServiceTasks.Add(entity);
+            await _dbContext.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Service task added successfully";
+            response.ServiceTask = ServiceTaskMapper.ToProto(created.Entity);
+        }
+        catch (Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to add service task");
+        }
+
+        return response;
+    }
+    
+    
+
+
 
 }
