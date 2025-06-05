@@ -4,18 +4,22 @@ using Shared.Grpc.Messages;
 using WorkshopService.Data;
 using WorkshopService.Entities;
 using WorkshopService.Mappers;
+using Microsoft.Extensions.Logging;
 
 namespace WorkshopService.Services;
 
 public class WorkshopServiceImplementation(
     Shared.Grpc.Services.AuthService.AuthServiceClient authService,
     AppDbContext dbContext,
-    IWorkshopEventPublisher eventPublisher)
+    IWorkshopEventPublisher eventPublisher,
+    ILogger<WorkshopServiceImplementation> logger
+    )
     : Shared.Grpc.Services.WorkshopService.WorkshopServiceBase {
     
     private readonly Shared.Grpc.Services.AuthService.AuthServiceClient _authService = authService;
     private readonly AppDbContext _dbContext = dbContext;
     private readonly IWorkshopEventPublisher _eventPublisher = eventPublisher;
+    private readonly ILogger<WorkshopServiceImplementation> _logger = logger;
     
     public override async Task<AddOrderResponse> AddOrder(AddOrderRequest request, ServerCallContext context) {
         var response = new AddOrderResponse {
@@ -37,14 +41,16 @@ public class WorkshopServiceImplementation(
             await _dbContext.SaveChangesAsync();
             // _eventPublisher.PublishEvent("workshop.service.order.created", createdOrder.Entity);
             
+            _logger.LogInformation("ServiceOrder created with Id={OrderId}", createdOrder.Entity.Id);
+            
             response.Success = true;
             response.Message = "Success";
             response.ServiceOrder = createdOrder.Entity.ToProto();
         }
         catch(Exception ex)
         {
-            response.Success = false;
             response.Message = $"Error: {ex.Message}";    
+            _logger.LogError(ex, "Failed to add service order");
         }
         
         return response;
@@ -73,6 +79,9 @@ public class WorkshopServiceImplementation(
 
             var created = _dbContext.Vehicles.Add(entity);
             await _dbContext.SaveChangesAsync();
+            
+            _logger.LogInformation("Vehicle created with Id={OrderId}", created.Entity.Id);
+
 
             response.Success = true;
             response.Message = "Vehicle added successfully";
@@ -80,11 +89,45 @@ public class WorkshopServiceImplementation(
         }
         catch (Exception ex)
         {
-            response.Success = false;
-            response.Message = $"Error: {ex.Message}";    
-
+            response.Message = $"Error: {ex.Message}"; 
+            _logger.LogError(ex, "Failed to add vehicle");
         }
         return response;
         
     }
+
+    public override async Task<AddVehiclePartResponse> AddVehiclePart(AddVehiclePartRequest request, ServerCallContext context)
+    {
+        var response = new AddVehiclePartResponse
+        {
+            Success = false,
+            Message = ""
+        };
+        try
+        {
+            var entity = new VehiclePartEntity
+            {
+                Name = request.Name,
+                PartNumber = request.PartNumber,
+                Description = request.Description,
+                Price = request.Price,
+                AvailableQuantity = request.AvailableQuantity
+            };
+
+            var created = _dbContext.VehicleParts.Add(entity);
+            await _dbContext.SaveChangesAsync();
+
+            response.Success = true;
+            response.Message = "Vehicle part added successfully";
+            response.VehiclePart = VehiclePartMapper.ToProto(created.Entity);
+        }
+        catch (Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to add vehicle part");
+        }
+        
+        return response;
+    }
+
 }

@@ -4,6 +4,8 @@ using WorkshopService.Data;
 using WorkshopService.Services;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
+using Serilog;
+
 
 var config = new EnvConfig();
 
@@ -14,8 +16,13 @@ if (!int.TryParse(portStr, out var port)) {
 }
 
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Information);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 
 builder.WebHost.ConfigureKestrel(options =>
