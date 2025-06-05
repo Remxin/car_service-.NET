@@ -8,15 +8,21 @@
 
     <ItemGroup>
         <PackageReference Include="dotenv.net" Version="3.2.1" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5"/>
+        <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" Version="2.71.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.71.0">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+        <PackageReference Include="Shared.Grpc" Version="1.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.1-dev-00953" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 
-        <Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/messages/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
-        <Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/models/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
-        <Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/services/*.proto" GrpcServices="Server" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
+<Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/messages/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
+<Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/models/*.proto" GrpcServices="None" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
+<Protobuf Include="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos/services/*.proto" GrpcServices="Client" ProtoRoot="$(NuGetPackageRoot)shared.grpc/1.0.1/contentFiles/any/protos" />
     </ItemGroup>
 
     <ItemGroup>

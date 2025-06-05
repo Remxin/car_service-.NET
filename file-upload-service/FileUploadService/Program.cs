@@ -1,6 +1,8 @@
 using FileUploadService;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles.Infrastructure;
 using Serilog;
+
 
 var config = new EnvConfig();
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+
+builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
+    options.Address = new Uri(config.AuthServiceUrl);
+});
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
