@@ -231,9 +231,122 @@ public class WorkshopServiceImplementation(
 
         return response;
     }
+
+    public override async Task<GetVehicleResponse> GetVehicle(GetVehicleRequest request,
+        ServerCallContext context)
+    {
+        var response = new GetVehicleResponse
+        {
+            Success = false,
+            Message = "",
+        };
+
+        try
+        {
+            var entity = await _dbContext.Vehicles.FindAsync(request.VehicleId);
+
+            if (entity == null)
+            {
+                response.Message = "Vehicle not found";
+                _logger.LogWarning("Vehicle with Id={VehicleId} not found", request.VehicleId);
+                return response;
+            }
+            response.Success = true;
+            response.Message = "OK";
+            response.Vehicle = VehicleMapper.ToProto(entity);
+
+        }
+        catch (Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to get vehicle");
+            return response;
+        }
+
+        return response;
+    }
+    
+    public override async Task<GetVehiclePartResponse> GetVehiclePart(GetVehiclePartRequest request, ServerCallContext context)
+    {
+        var response = new GetVehiclePartResponse
+        {
+            Success = false,
+            Message = ""
+        };
+
+        try
+        {
+            var entity = await _dbContext.VehicleParts.FindAsync(request.VehiclePartId);
+            if (entity == null)
+            {
+                response.Message = $"Vehicle part with ID={request.VehiclePartId} not found";
+                return response;
+            }
+
+            response.Success = true;
+            response.Message = "OK";
+            response.VehiclePart = VehiclePartMapper.ToProto(entity);
+
+        }catch(Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to get vehicle part");
+        }
+        
+        return response;
+    }
+
+    public override async Task<SearchVehiclesResponse> SearchVehicles(SearchVehiclesRequest request,
+        ServerCallContext context)
+    {
+        var response = new SearchVehiclesResponse
+        {
+            Success = false,
+            Message = "",
+        };
+
+        try
+        {
+            var query = _dbContext.Vehicles.AsQueryable();
+
+            if (!string.IsNullOrEmpty(request.Brand))
+                query = query.Where(y=> y.Brand.Contains(request.Brand));
+            
+            if (!string.IsNullOrEmpty(request.Model))
+                query = query.Where(v => v.Model.Contains(request.Model));
+
+            if (request.Year != 0)
+                query = query.Where(v => v.Year == request.Year);
+
+            if (!string.IsNullOrEmpty(request.Vin))
+                query = query.Where(v => v.Vin.Contains(request.Vin));
+            
+            var totalCount = await query.CountAsync();
+            
+            var entities = await query
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
+
+            response.Success = true;
+            response.Message = "OK";
+            response.TotalCount = totalCount;
+            response.Vehicles.AddRange(entities.Select(VehicleMapper.ToProto));
+            
+            
+        }catch (Exception ex)
+        {
+            response.Message = $"Error: {ex.Message}";
+            _logger.LogError(ex, "Failed to search vehicles");
+        }
+        
+        return response;
+
+    }
     
     
-
-
 
 }
+
+
+
