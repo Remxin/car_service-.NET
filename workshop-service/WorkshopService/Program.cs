@@ -4,6 +4,8 @@ using WorkshopService.Data;
 using WorkshopService.Services;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
+using Serilog;
+
 
 var config = new EnvConfig();
 
@@ -14,8 +16,13 @@ if (!int.TryParse(portStr, out var port)) {
 }
 
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Information);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 
 builder.WebHost.ConfigureKestrel(options =>
@@ -51,16 +58,15 @@ builder.Services.AddSingleton<IConnection>(sp => {
     }
 });
 builder.Services.AddSingleton<IWorkshopEventPublisher, WorkshopEventPublisher>();
+builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
+    options.Address = new Uri(config.AuthServiceUrl);
+});
 
 
-// Dodaj usługi do kontenera DI
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 
-// Dodaj Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -77,22 +83,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-
-// Konfiguracja HTTP request pipeline
-// if (app.Environment.IsDevelopment())
-// {
 app.MapGrpcReflectionService();
-app.UseSwagger();
-app.UseSwaggerUI();
-// }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-// Mapowanie kontrolerów API
 app.MapControllers();
 
-// Mapowanie serwisów gRPC
 app.MapGrpcService<WorkshopServiceImplementation>();
 
 app.Run();

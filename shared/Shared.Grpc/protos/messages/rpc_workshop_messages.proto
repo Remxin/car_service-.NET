@@ -148,7 +148,7 @@ message SearchVehiclePartsResponse {
 }
 
 message GetOrderRequest {
-    string service_order_id = 1;
+    int32 service_order_id = 1;
 }
 
 message GetOrderResponse {
