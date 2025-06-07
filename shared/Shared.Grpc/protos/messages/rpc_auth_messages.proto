@@ -7,7 +7,6 @@ option csharp_namespace = "Shared.Grpc.Messages";
 
 package car_service;
 
-// Definicje wiadomości dla logowania
 message LoginRequest {
   string email = 1;
   string password = 2;
@@ -20,7 +19,6 @@ message LoginResponse {
   UserDto user = 4;
 }
 
-// Definicje wiadomości dla rejestracji
 message RegisterRequest {
   string email = 1;
   string password = 2;
@@ -34,9 +32,9 @@ message RegisterResponse {
   string message = 3;
 }
 
-// Definicje wiadomości dla weryfikacji użytkownika
 message VerifyUserRequest {
   string token = 1;
+  repeated string roles = 2; 
 }
 
 message VerifyUserResponse {
@@ -53,6 +51,14 @@ message VerifyActionRequest {
 message VerifyActionResponse {
   bool allowed = 1;
   string message = 2;
+}
+
+message GetUserRequest {
+  int32 userId = 1;
+}
+
+message GetUserResponse {
+  UserDto user = 1;
 }
 
 message GetUsersWithRolesRequest {

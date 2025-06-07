@@ -58,16 +58,15 @@ builder.Services.AddSingleton<IConnection>(sp => {
     }
 });
 builder.Services.AddSingleton<IWorkshopEventPublisher, WorkshopEventPublisher>();
+builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
+    options.Address = new Uri(config.AuthServiceUrl);
+});
 
 
-// Dodaj usługi do kontenera DI
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 
-// Dodaj Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -84,22 +83,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-
-// Konfiguracja HTTP request pipeline
-// if (app.Environment.IsDevelopment())
-// {
 app.MapGrpcReflectionService();
-app.UseSwagger();
-app.UseSwaggerUI();
-// }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-// Mapowanie kontrolerów API
 app.MapControllers();
 
-// Mapowanie serwisów gRPC
 app.MapGrpcService<WorkshopServiceImplementation>();
 
 app.Run();

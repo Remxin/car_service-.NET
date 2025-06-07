@@ -121,6 +121,19 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
         return response;
     }
 
+    public override async Task<GetUserResponse> GetUser(GetUserRequest request,
+        ServerCallContext context) {
+        var response = new GetUserResponse {
+            User = null
+        };
+        var user = await _dbContext.Users.FindAsync(request.UserId);
+        if (user == null) {
+            return response;
+        }
+        response.User = user.ToProtoDto();
+        return response;
+    }
+
     public override async Task<VerifyActionResponse> VerifyAction(VerifyActionRequest request,
         ServerCallContext context) {
         var response = new VerifyActionResponse {

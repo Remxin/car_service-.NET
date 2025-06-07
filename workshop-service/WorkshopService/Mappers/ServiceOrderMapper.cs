@@ -17,4 +17,14 @@ public static class ServiceOrderMapper
             CreatedAt = Timestamp.FromDateTime(entity.CreatedAt.ToUniversalTime())
         };
     }
+
+    public static ServiceOrderWithVehicle ToProtoWithVehicle(this ServiceOrderEntity entity) {
+        return new ServiceOrderWithVehicle {
+            Id = entity.Id,
+            Vehicle = VehicleMapper.ToProto(entity.Vehicle),
+            Status = entity.Status,
+            AssignedMechanicId = entity.AssignedMechanicId ?? 0,
+            CreatedAt = Timestamp.FromDateTime(entity.CreatedAt.ToUniversalTime()),
+        };
+    }
 }
