@@ -1,3 +1,4 @@
+using Gateway.Api.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Grpc.Messages;
@@ -24,7 +25,7 @@ public class AuthController (
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetUsers() {
+    public async Task<IActionResult> GetUsersWithRolesAsync() {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
             _logger.LogWarning("Authorization header missing");
@@ -49,8 +50,183 @@ public class AuthController (
             });
         }
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestBody body) {
+        try {
+            var res = await _authServiceClient.LoginAsync(new LoginRequest {
+                Email = body.Email,
+                Password = body.Password
+            });
+            if (!res.Success) {
+                _logger.LogWarning("Failed to login");
+                return NotFound(new LoginResponse {
+                    Message = res.Message,
+                });
+            }
+
+            return Ok(res);
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to fetch users ");
+            return StatusCode(500, new LoginResponse() {
+                Message = "Failed to login - local server error"
+            });
+        }
+        
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestBody body) {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new GetUsersWithRolesResponse {
+                UsersWithRoles = { }
+            });
+        }
+
+        try {
+            var perm = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = body.Password,
+                Action = "manage_users"
+            });
+            if (!perm.Allowed) {
+                _logger.LogWarning("User has not permissions");
+                return Unauthorized(
+                    new RegisterResponse {
+                        Message = perm.Message,
+                    });
+            }
+
+            var res = await _authServiceClient.RegisterAsync(new RegisterRequest{
+                Email = body.Email,
+                Password = body.Password,
+                FirstName = body.FirstName,
+                LastName = body.LastName,
+            });
+            if (!res.Success) {
+                _logger.LogWarning("Failed to register new user");
+                return NotFound(new LoginResponse {
+                    Message = res.Message,
+                    Success = false
+                });
+            }
+
+            return Ok(res);
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to fetch users ");
+            return StatusCode(500, new LoginResponse() {
+                Message = "Failed to login - local server error"
+            });
+        }
+    }
+
+    [HttpPost("add-role")]
+    public async Task<IActionResult> AddRole([FromBody] AddRoleRequestBody body) {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new AddRoleResponse {
+                Success = false,
+                Message = "No token provided",
+            });
+        }
+
+        try {
+            var res = await _authServiceClient.AddRoleAsync(new AddRoleRequest {
+                Token = body.Token,
+                RoleId = body.RoleId,
+                UserId = body.UserId
+            });
+
+            if (!res.Success) {
+                _logger.LogWarning("Failed to add role");
+                return BadRequest(new AddRoleResponse {
+                    Success = false,
+                    Message = res.Message,
+                });
+            }
+
+            return Ok(res);
+
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to add role");
+            return StatusCode(500, new AddRoleResponse {
+                Success = false,
+                Message = "Internal server error",
+            });
+        }
+    }
     
-    // public async Task<>
+    [HttpPost("remove-role")]
+    public async Task<IActionResult> RemoveRole([FromBody] RemoveRoleRequestBody body) {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new RemoveRoleResponse() {
+                Success = false,
+                Message = "No token provided",
+            });
+        }
+
+        try {
+            var res = await _authServiceClient.RemoveRoleAsync(new RemoveRoleRequest {
+                Token = body.Token,
+                RoleId = body.RoleId,
+                UserId = body.UserId
+            });
+
+            if (!res.Success) {
+                _logger.LogWarning("Failed to add role");
+                return BadRequest(new RemoveRoleResponse() {
+                    Success = false,
+                    Message = res.Message,
+                });
+            }
+
+            return Ok(res);
+
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to add role");
+            return StatusCode(500, new RemoveRoleResponse {
+                Success = false,
+                Message = "Internal server error",
+            });
+        }
+    }
+
+    [HttpPost("verify")]
+    public async Task<IActionResult> VerifyUser() {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new VerifyUserResponse{
+                IsValid = false,
+                Message = "No token provided",
+            });
+        }
+
+        try {
+            var res = await _authServiceClient.VerifyUserAsync(new VerifyUserRequest {
+                Token = token,
+            });
+            if (!res.IsValid) {
+                return Unauthorized(res);
+            }
+            return Ok(res);
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to verify user");
+            return StatusCode(500, new VerifyUserResponse {
+                IsValid = false,
+                Message = "Internal server error",
+            });
+        }
+    }
     
     private string? GetAccessToken() {
         var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
