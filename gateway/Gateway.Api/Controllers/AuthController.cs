@@ -1,33 +1,64 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Grpc.Messages;
+using Shared.Grpc.Models;
+using Shared.Grpc.Services;
 
 namespace Gateway.Api.Controllers;
 
 [ApiController]
-[Route("v1/auth")] // <-- wersja w URL
-// [ApiVersion("1.0")] // <-- atrybut wersji
-public class AuthController : ControllerBase {
+[Route("v1/users")] 
+public class AuthController (
+        AuthService.AuthServiceClient authServiceClient,
+        WorkshopService.WorkshopServiceClient workshopServiceClient,
+        ReportService.ReportServiceClient reportServiceClient,
+        ILogger<AuthController> logger
+    ): ControllerBase {
     
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+    private readonly ILogger<AuthController> _logger = logger;
+    private readonly AuthService.AuthServiceClient _authServiceClient = authServiceClient;
+    private readonly WorkshopService.WorkshopServiceClient _workshopServiceClient = workshopServiceClient;
+    private readonly ReportService.ReportServiceClient _reportServiceClient = reportServiceClient;
 
     [HttpGet]
-    public IEnumerable<WeatherForecast> Get()
-    {
-        return Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    Summaries[Random.Shared.Next(Summaries.Length)]
-                ))
-            .ToArray();
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetUsers() {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new GetUsersWithRolesResponse {
+                UsersWithRoles = {  }
+            });
+        }
+
+        try {
+            var users = await _authServiceClient.GetUsersWithRolesAsync(new GetUsersWithRolesRequest {
+                Token = token
+            });
+
+            return Ok(new GetUsersWithRolesResponse {
+                UsersWithRoles = { users.UsersWithRoles }
+            });
+        }
+        catch (Exception ex) {
+            _logger.LogError(ex, "Failed to fetch users");
+            return StatusCode(500, new GetUsersWithRolesResponse {
+                UsersWithRoles = {  }
+            });
+        }
     }
     
-}
-
-public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    // public async Task<>
+    
+    private string? GetAccessToken() {
+        var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+        if (authHeader != null && authHeader.StartsWith("Bearer ")) {
+            return authHeader.Substring("Bearer ".Length).Trim();
+        }
+        _logger.LogWarning("No authorization header found");
+        return null;
+    }
+    
 }
