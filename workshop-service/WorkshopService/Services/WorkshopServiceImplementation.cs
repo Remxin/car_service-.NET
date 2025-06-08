@@ -46,7 +46,7 @@ public class WorkshopServiceImplementation(
 
             var createdOrder = _dbContext.ServiceOrders.Add(order);
             await _dbContext.SaveChangesAsync();
-            // _eventPublisher.PublishEvent("workshop.service.order.created", createdOrder.Entity);
+            await _dbContext.Entry(order).Reference(o => o.Vehicle).LoadAsync();
 
             _logger.LogInformation("ServiceOrder created with Id={OrderId}",
                 createdOrder.Entity.Id);
@@ -54,6 +54,13 @@ public class WorkshopServiceImplementation(
             response.Success = true;
             response.Message = "Success";
             response.ServiceOrder = createdOrder.Entity.ToProto();
+            _eventPublisher.PublishEvent("workshop.service.order.created", new {
+                Id = order.Id,
+                Vehicle = order.Vehicle,
+                Status = order.Status,
+                UserId = order.AssignedMechanicId,
+                CreatedAt = order.CreatedAt,
+            });
         }
         catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
@@ -148,6 +155,13 @@ public class WorkshopServiceImplementation(
             response.Success = true;
             response.Message = "Service task added successfully";
             response.ServiceTask = ServiceTaskMapper.ToProto(created.Entity);
+            _eventPublisher.PublishEvent("workshop.service.task.added", new {
+                Id = created.Entity.Id,
+                OrderId = created.Entity.OrderId,
+                Description = created.Entity.Description,
+                LaborCost = created.Entity.LaborCost,
+                CreatedAt = created.Entity.CreatedAt,
+            });
         }
         catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
@@ -173,10 +187,19 @@ public class WorkshopServiceImplementation(
 
             var created = _dbContext.ServiceParts.Add(entity);
             await _dbContext.SaveChangesAsync();
+            var vehiclePart = await _dbContext.VehicleParts
+                .FirstOrDefaultAsync(vp => vp.Id == created.Entity.VehiclePartId);
 
             response.Success = true;
             response.Message = "Service part added successfully";
             response.ServicePart = ServicePartMapper.ToProto(created.Entity);
+            
+            _eventPublisher.PublishEvent("workshop.service.part.added", new {
+                Id = created.Entity.Id,
+                OrderId = created.Entity.OrderId,
+                VehiclePart = vehiclePart,
+                Quantity = created.Entity.Quantity,
+            });
         }
         catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
@@ -205,6 +228,13 @@ public class WorkshopServiceImplementation(
             response.Success = true;
             response.Message = "Service comment added successfully";
             response.ServiceComment = ServiceCommentMapper.ToProto(created.Entity);
+            
+            _eventPublisher.PublishEvent("workshop.service.comment.added", new {
+                Id = created.Entity.Id,
+                OrderId = created.Entity.OrderId,
+                Content = request.Content,
+                CreateAt = created.Entity.CreatedAt,
+            });
         }
         catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
@@ -409,13 +439,6 @@ public class WorkshopServiceImplementation(
         
         return response;
     }
-    // public override Task<GetOrderResponse> GetOrder(GetOrderRequest request, ServerCallContext context) {
-    //     var response = new GetOrderResponse {
-    //         Success = true,
-    //         Message = "Test"
-    //     };
-    //     return Task.FromResult(response);
-    // }
 
     public override async Task<SearchOrdersResponse> SearchOrders(SearchOrdersRequest request,
         ServerCallContext context)
@@ -466,6 +489,352 @@ public class WorkshopServiceImplementation(
 
         return response;
     }
+    
+    public override async Task<UpdateVehicleResponse> UpdateVehicle(UpdateVehicleRequest request, ServerCallContext context)
+    {
+        var vehicle = await _dbContext.Vehicles.FindAsync(request.VehicleId);
+        if (vehicle is null)
+            return new UpdateVehicleResponse {
+                Message = $"Vehicle with id={request.VehicleId} not found",
+                Success = false
+            };
+
+        if (!string.IsNullOrWhiteSpace(request.Brand)) vehicle.Brand = request.Brand;
+        if (!string.IsNullOrWhiteSpace(request.Model)) vehicle.Model = request.Model;
+        if (!string.IsNullOrWhiteSpace(request.CarImageUrl)) vehicle.PhotoUrl = request.CarImageUrl;
+        if (!string.IsNullOrWhiteSpace(request.Vin)) vehicle.Vin = request.Vin;
+        if (request.Year > 0) vehicle.Year = request.Year;
+
+        await _dbContext.SaveChangesAsync();
+        return new UpdateVehicleResponse {
+            Message = "Ok",
+            Success = true,
+            Vehicle = vehicle.ToProto()
+        };
+    }
+
+    public override async Task<UpdateVehiclePartResponse> UpdateVehiclePart(UpdateVehiclePartRequest request, ServerCallContext context)
+    {
+        var part = await _dbContext.VehicleParts.FindAsync(request.VehiclePartId);
+        if (part is null)
+            return new UpdateVehiclePartResponse {
+               Message = $"Part with id={request.VehiclePartId} not found",
+               Success = false
+            };
+
+        if (!string.IsNullOrWhiteSpace(request.Name)) part.Name = request.Name;
+        if (!string.IsNullOrWhiteSpace(request.PartNumber)) part.PartNumber = request.PartNumber;
+        if (!string.IsNullOrWhiteSpace(request.Description)) part.Description = request.Description;
+        part.AvailableQuantity = request.AvailableQuantity;
+
+        await _dbContext.SaveChangesAsync();
+        return new UpdateVehiclePartResponse {
+            Message = "Ok",
+            Success = true,
+            VehiclePart = part.ToProto()
+        };
+    }
+
+    public override async Task<UpdateOrderResponse> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
+    {
+        var order = await _dbContext.ServiceOrders
+            .Include(o => o.Vehicle)
+            .FirstOrDefaultAsync(o => o.Id == request.ServiceOrderId);
+        if (order is null)
+            return new UpdateOrderResponse {
+                Message = $"Order with id={request.ServiceOrderId} not found",
+                Success = false
+            };
+
+        if (order.AssignedMechanicId == null) {
+            return new UpdateOrderResponse {
+                Message = $"Order with id={request.ServiceOrderId} mechanic id not found",
+                Success = false
+            };
+        }
+   
+        if (!string.IsNullOrWhiteSpace(request.Status)) order.Status = request.Status;
+        order.AssignedMechanicId = request.AssignedMechanicId;
+        order.VehicleId = request.VehicleId;
+
+        await _dbContext.SaveChangesAsync();
+        var mechanic = await _authClient.GetUserAsync(new GetUserRequest {
+            UserId = order.AssignedMechanicId.Value
+        });
+        _eventPublisher.PublishEvent("workshop.service.order.updated", new {
+            Vehicle = order.Vehicle,
+            OrderId = order.Id,
+            Status = order.Status,
+            User = mechanic
+        });
+        return new UpdateOrderResponse {
+            Message = "Ok",
+            Success = true,
+            ServiceOrder = order.ToProto()
+        };
+    }
+
+public override async Task<UpdateServiceTaskResponse> UpdateServiceTask(UpdateServiceTaskRequest request, ServerCallContext context)
+{
+    var response = new UpdateServiceTaskResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceTasks.FindAsync(request.ServiceTaskId);
+        if (entity == null) {
+            response.Message = "Service task not found";
+            return response;
+        }
+
+        entity.Description = request.Description;
+        entity.LaborCost = request.LaborCost;
+
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Service task updated successfully";
+        response.ServiceTask = ServiceTaskMapper.ToProto(entity);
+        
+        _eventPublisher.PublishEvent("workshop.service.task.updated", new {
+            Id = entity.Id,
+            OrderId = entity.OrderId,
+            Description = entity.Description,
+            LaborCost = entity.LaborCost,
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to update service task");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<UpdateServicePartResponse> UpdateServicePart(UpdateServicePartRequest request, ServerCallContext context)
+{
+    var response = new UpdateServicePartResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceParts
+            .Include(sp => sp.VehiclePart)
+            .FirstOrDefaultAsync(sp => sp.Id == request.ServicePartId);
+        if (entity == null) {
+            response.Message = "Service part not found";
+            return response;
+        }
+
+        entity.Quantity = request.Quantity;
+
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Service part updated successfully";
+        response.ServicePart = ServicePartMapper.ToProto(entity);
+        
+        _eventPublisher.PublishEvent("workshop.service.part.updated",new {
+            Id = entity.Id,
+            OrderId = entity.OrderId,
+            VehiclePart = entity.VehiclePart,
+            Quantity = entity.Quantity,
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to update service part");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<UpdateServiceCommentResponse> UpdateServiceComment(UpdateServiceCommentRequest request, ServerCallContext context)
+{
+    var response = new UpdateServiceCommentResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceComments.FindAsync(request.ServiceCommentId);
+        if (entity == null) {
+            response.Message = "Service comment not found";
+            return response;
+        }
+
+        entity.Content = request.Content;
+
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Service comment updated successfully";
+        response.ServiceComment = entity.ToProto();
+        
+        _eventPublisher.PublishEvent("workshop.service.comment.updated", new {
+            Id = entity.Id,
+            OrderId = entity.OrderId,
+            Content = entity.Content,
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to update service comment");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+    
+    public override async Task<DeleteVehicleResponse> DeleteVehicle(DeleteVehicleRequest request, ServerCallContext context)
+{
+    var response = new DeleteVehicleResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.Vehicles.FindAsync(request.VehicleId);
+        if (entity == null) {
+            response.Message = "Vehicle not found";
+            return response;
+        }
+
+        _dbContext.Vehicles.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Vehicle deleted successfully";
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to delete vehicle");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<DeleteVehiclePartResponse> DeleteVehiclePart(DeleteVehiclePartRequest request, ServerCallContext context)
+{
+    var response = new DeleteVehiclePartResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.VehicleParts.FindAsync(request.VehiclePartId);
+        if (entity == null) {
+            response.Message = "Vehicle part not found";
+            return response;
+        }
+
+        _dbContext.VehicleParts.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Vehicle part deleted successfully";
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to delete vehicle part");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<DeleteOrderResponse> DeleteOrder(DeleteOrderRequest request, ServerCallContext context)
+{
+    var response = new DeleteOrderResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceOrders.FindAsync(request.ServiceOrderId);
+        if (entity == null) {
+            response.Message = "Order not found";
+            return response;
+        }
+
+        _dbContext.ServiceOrders.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Order deleted successfully";
+        _eventPublisher.PublishEvent("workshop.service.order.deleted", new {
+            Id = request.ServiceOrderId
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to delete order");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<DeleteServiceTaskResponse> DeleteServiceTask(DeleteServiceTaskRequest request, ServerCallContext context)
+{
+    var response = new DeleteServiceTaskResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceTasks.FindAsync(request.ServiceTaskId);
+        if (entity == null) {
+            response.Message = "Service task not found";
+            return response;
+        }
+
+        _dbContext.ServiceTasks.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Service task deleted successfully";
+        
+        _eventPublisher.PublishEvent("workshop.service.task.removed", new {
+            Id = request.ServiceTaskId,
+            OrderId = entity.OrderId
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to delete service task");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<DeleteServicePartResponse> DeleteServicePart(DeleteServicePartRequest request, ServerCallContext context)
+{
+    var response = new DeleteServicePartResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceParts.FindAsync(request.ServicePartId);
+        if (entity == null) {
+            response.Message = "Service part not found";
+            return response;
+        }
+
+        _dbContext.ServiceParts.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Service part deleted successfully";
+        
+        _eventPublisher.PublishEvent("workshop.service.part.removed", new {
+            Id = request.ServicePartId,
+            OrderId = entity.OrderId
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to delete service part");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
+
+public override async Task<DeleteServiceCommentResponse> DeleteServiceComment(DeleteServiceCommentRequest request, ServerCallContext context)
+{
+    var response = new DeleteServiceCommentResponse { Success = false };
+
+    try {
+        var entity = await _dbContext.ServiceComments.FindAsync(request.ServiceCommentId);
+        if (entity == null) {
+            response.Message = "Service comment not found";
+            return response;
+        }
+
+        _dbContext.ServiceComments.Remove(entity);
+        await _dbContext.SaveChangesAsync();
+
+        response.Success = true;
+        response.Message = "Service comment deleted successfully";
+        _eventPublisher.PublishEvent("workshop.service.comment.removed", new {
+            Id = request.ServiceCommentId,
+            OrderId = entity.OrderId
+        });
+    } catch (Exception ex) {
+        _logger.LogError(ex, "Failed to delete service comment");
+        response.Message = $"Error: {ex.Message}";
+    }
+
+    return response;
+}
 }
     
 

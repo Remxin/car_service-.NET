@@ -174,3 +174,138 @@ message SearchOrdersResponse {
     repeated ServiceOrderWithVehicle service_orders = 3;
     int32 total_count = 4;
 }
+
+message UpdateVehicleRequest {
+  int32 vehicle_id = 1;
+  string car_image_url = 2;
+  string brand = 3;
+  string model = 4;
+  int32 year = 5;
+  string vin = 6;
+}
+
+message UpdateVehicleResponse {
+  bool success = 1;
+  string message = 2;
+  Vehicle vehicle = 3;
+}
+
+message DeleteVehicleRequest {
+  int32 vehicle_id = 1;
+}
+
+message DeleteVehicleResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateVehiclePartRequest {
+  int32 vehicle_part_id = 1;
+  string name = 2;
+  string part_number = 3;
+  string description = 4;
+  double price = 5;
+  int32 available_quantity = 6;
+}
+
+message UpdateVehiclePartResponse {
+  bool success = 1;
+  string message = 2;
+  VehiclePart vehicle_part = 3;
+}
+
+message DeleteVehiclePartRequest {
+  int32 vehicle_part_id = 1;
+}
+
+message DeleteVehiclePartResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateOrderRequest {
+  int32 service_order_id = 1;
+  int32 vehicle_id = 2;
+  string status = 3;
+  int32 assigned_mechanic_id = 4;
+}
+
+message UpdateOrderResponse {
+  bool success = 1;
+  string message = 2;
+  ServiceOrder service_order = 3;
+}
+
+message DeleteOrderRequest {
+  int32 service_order_id = 1;
+}
+
+message DeleteOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateServiceTaskRequest {
+  int32 service_task_id = 1;
+  int32 order_id = 2;
+  string description = 3;
+  double labor_cost = 4;
+}
+
+message UpdateServiceTaskResponse {
+  bool success = 1;
+  string message = 2;
+  ServiceTask service_task = 3;
+}
+
+message DeleteServiceTaskRequest {
+  int32 service_task_id = 1;
+}
+
+message DeleteServiceTaskResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateServicePartRequest {
+  int32 service_part_id = 1;
+  int32 order_id = 2;
+  int32 vehicle_part_id = 3;
+  int32 quantity = 4;
+}
+
+message UpdateServicePartResponse {
+  bool success = 1;
+  string message = 2;
+  ServicePart service_part = 3;
+}
+
+message DeleteServicePartRequest {
+  int32 service_part_id = 1;
+}
+
+message DeleteServicePartResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateServiceCommentRequest {
+  int32 service_comment_id = 1;
+  int32 order_id = 2;
+  string content = 3;
+}
+
+message UpdateServiceCommentResponse {
+  bool success = 1;
+  string message = 2;
+  ServiceComment service_comment = 3;
+}
+
+message DeleteServiceCommentRequest {
+  int32 service_comment_id = 1;
+}
+
+message DeleteServiceCommentResponse {
+  bool success = 1;
+  string message = 2;
+}

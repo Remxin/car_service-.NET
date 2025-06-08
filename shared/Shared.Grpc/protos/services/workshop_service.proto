@@ -6,13 +6,15 @@ package car_service;
 option csharp_namespace = "Shared.Grpc.Services";
 
 service WorkshopService {
-  rpc AddVehicle(AddVehicleRequest) returns (AddVehicleResponse);
+  // --- Add ---
+  rpc AddVehicle (AddVehicleRequest) returns (AddVehicleResponse);
   rpc AddVehiclePart (AddVehiclePartRequest) returns (AddVehiclePartResponse);
   rpc AddOrder (AddOrderRequest) returns (AddOrderResponse);
   rpc AddServiceTask (AddServiceTaskRequest) returns (AddServiceTaskResponse);
   rpc AddServicePart (AddServicePartRequest) returns (AddServicePartResponse);
   rpc AddServiceComment (AddServiceCommentRequest) returns (AddServiceCommentResponse);
 
+  // --- Get/Search ---
   rpc GetVehicle (GetVehicleRequest) returns (GetVehicleResponse);
   rpc SearchVehicles (SearchVehiclesRequest) returns (SearchVehiclesResponse);
   rpc GetVehiclePart (GetVehiclePartRequest) returns (GetVehiclePartResponse);
@@ -20,4 +22,19 @@ service WorkshopService {
   rpc GetOrder (GetOrderRequest) returns (GetOrderResponse);
   rpc SearchOrders (SearchOrdersRequest) returns (SearchOrdersResponse);
 
+  // --- Update ---
+  rpc UpdateVehicle (UpdateVehicleRequest) returns (UpdateVehicleResponse);
+  rpc UpdateVehiclePart (UpdateVehiclePartRequest) returns (UpdateVehiclePartResponse);
+  rpc UpdateOrder (UpdateOrderRequest) returns (UpdateOrderResponse);
+  rpc UpdateServiceTask (UpdateServiceTaskRequest) returns (UpdateServiceTaskResponse);
+  rpc UpdateServicePart (UpdateServicePartRequest) returns (UpdateServicePartResponse);
+  rpc UpdateServiceComment (UpdateServiceCommentRequest) returns (UpdateServiceCommentResponse);
+
+  // --- Delete ---
+  rpc DeleteVehicle (DeleteVehicleRequest) returns (DeleteVehicleResponse);
+  rpc DeleteVehiclePart (DeleteVehiclePartRequest) returns (DeleteVehiclePartResponse);
+  rpc DeleteOrder (DeleteOrderRequest) returns (DeleteOrderResponse);
+  rpc DeleteServiceTask (DeleteServiceTaskRequest) returns (DeleteServiceTaskResponse);
+  rpc DeleteServicePart (DeleteServicePartRequest) returns (DeleteServicePartResponse);
+  rpc DeleteServiceComment (DeleteServiceCommentRequest) returns (DeleteServiceCommentResponse);
 }

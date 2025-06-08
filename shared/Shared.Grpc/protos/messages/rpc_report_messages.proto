@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "Shared.Grpc.Messages";
 
+import "models/report.proto";
 import "google/protobuf/timestamp.proto";
 
 package car_service;
@@ -46,4 +47,13 @@ message SendEmailWithReportRequest {
 message SendEmailWithReportResponse {
     bool success = 1;
     string message = 2;
+}
+
+message GetReportsListRequest {
+    int32 page = 1;
+    int32 page_size = 2;
+}
+
+message GetReportsListResponse {
+    repeated Report reports = 1;
 }
