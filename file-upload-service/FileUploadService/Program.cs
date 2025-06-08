@@ -1,12 +1,14 @@
-using Gateway.Api;
+using FileUploadService;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles.Infrastructure;
 using Serilog;
+
 
 var config = new EnvConfig();
 var builder = WebApplication.CreateBuilder(args);
-var portStr = config.GatewayPort ?? "5010";
+var portStr = config.FileUploadServicePort ?? "5009";
 if (!int.TryParse(portStr, out var port)) {
-    port = 5010;
+    port = 5009;
 }
 
 builder.Logging.ClearProviders();
@@ -18,18 +20,10 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+
 builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
     options.Address = new Uri(config.AuthServiceUrl);
 });
-
-builder.Services.AddGrpcClient<Shared.Grpc.Services.WorkshopService.WorkshopServiceClient>(options => {
-    options.Address = new Uri(config.WorkshopServiceUrl);
-});
-
-builder.Services.AddGrpcClient<Shared.Grpc.Services.ReportService.ReportServiceClient>(options => {
-    options.Address = new Uri(config.ReportServiceUrl);
-});
-
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
@@ -39,7 +33,6 @@ builder.Services.AddSwaggerGen();
 builder.WebHost.ConfigureKestrel(options => {
     options.ListenAnyIP(port);
 });
-
 
 var app = builder.Build();
 

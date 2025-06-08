@@ -2,6 +2,7 @@ using AuthService;
 using AuthService.Data;
 using AuthService.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var config = new EnvConfig();
 
@@ -10,6 +11,14 @@ var portStr = config.AuthServicePort ?? "5005";
 if (!int.TryParse(portStr, out var port)) {
     port = 5005;
 }
+builder.Logging.ClearProviders();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -24,14 +33,10 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(config.
 builder.Services.AddSingleton<JwtTokenService>(new JwtTokenService(config.JwtSecretKey));
 builder.Services.AddSingleton<PasswordService>(new PasswordService());
 
-// Dodaj usługi do kontenera DI
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 
-// Dodaj Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -43,22 +48,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-
-// Konfiguracja HTTP request pipeline
-// if (app.Environment.IsDevelopment())
-// {
 app.MapGrpcReflectionService();
-app.UseSwagger();
-app.UseSwaggerUI();
-// }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-// Mapowanie kontrolerów API
 app.MapControllers();
 
-// Mapowanie serwisów gRPC
 app.MapGrpcService<AuthServiceImpl>();
 
 app.Run();

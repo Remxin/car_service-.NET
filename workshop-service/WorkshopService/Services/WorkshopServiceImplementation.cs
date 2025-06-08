@@ -1,3 +1,4 @@
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using WorkshopService;
 using Shared.Grpc.Messages;
@@ -6,6 +7,7 @@ using WorkshopService.Entities;
 using WorkshopService.Mappers;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Shared.Grpc.Models;
 
 
 namespace WorkshopService.Services;
@@ -14,7 +16,8 @@ public class WorkshopServiceImplementation(
     Shared.Grpc.Services.AuthService.AuthServiceClient authService,
     AppDbContext dbContext,
     IWorkshopEventPublisher eventPublisher,
-    ILogger<WorkshopServiceImplementation> logger
+    ILogger<WorkshopServiceImplementation> logger,
+    Shared.Grpc.Services.AuthService.AuthServiceClient authClient
 )
     : Shared.Grpc.Services.WorkshopService.WorkshopServiceBase {
 
@@ -22,19 +25,17 @@ public class WorkshopServiceImplementation(
     private readonly AppDbContext _dbContext = dbContext;
     private readonly IWorkshopEventPublisher _eventPublisher = eventPublisher;
     private readonly ILogger<WorkshopServiceImplementation> _logger = logger;
+    private readonly Shared.Grpc.Services.AuthService.AuthServiceClient _authClient = authClient;
 
     public override async Task<AddOrderResponse> AddOrder(AddOrderRequest request,
-        ServerCallContext context)
-    {
-        var response = new AddOrderResponse
-        {
+        ServerCallContext context) {
+        var response = new AddOrderResponse {
             Success = false,
             Message = "",
             ServiceOrder = null,
         };
 
-        try
-        {
+        try {
 
             var order = new ServiceOrderEntity
             {
@@ -54,8 +55,7 @@ public class WorkshopServiceImplementation(
             response.Message = "Success";
             response.ServiceOrder = createdOrder.Entity.ToProto();
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to add service order");
         }
@@ -64,24 +64,19 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<AddVehicleResponse> AddVehicle(AddVehicleRequest request,
-        ServerCallContext context)
-    {
-        var response = new AddVehicleResponse
-        {
+        ServerCallContext context) {
+        var response = new AddVehicleResponse {
             Success = false,
             Message = "",
         };
 
-        try
-        {
-            var entity = new VehicleEntity
-            {
+        try {
+            var entity = new VehicleEntity {
                 Brand = request.Brand,
                 Model = request.Model,
                 Year = request.Year,
                 Vin = request.Vin,
                 PhotoUrl = request.CarImageUrl,
-                CreatedAt = DateTime.UtcNow,
             };
 
             var created = _dbContext.Vehicles.Add(entity);
@@ -94,8 +89,7 @@ public class WorkshopServiceImplementation(
             response.Message = "Vehicle added successfully";
             response.Vehicle = VehicleMapper.ToProto(created.Entity);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to add vehicle");
         }
@@ -105,17 +99,13 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<AddVehiclePartResponse> AddVehiclePart(AddVehiclePartRequest request,
-        ServerCallContext context)
-    {
-        var response = new AddVehiclePartResponse
-        {
+        ServerCallContext context) {
+        var response = new AddVehiclePartResponse {
             Success = false,
             Message = ""
         };
-        try
-        {
-            var entity = new VehiclePartEntity
-            {
+        try {
+            var entity = new VehiclePartEntity {
                 Name = request.Name,
                 PartNumber = request.PartNumber,
                 Description = request.Description,
@@ -130,8 +120,7 @@ public class WorkshopServiceImplementation(
             response.Message = "Vehicle part added successfully";
             response.VehiclePart = VehiclePartMapper.ToProto(created.Entity);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to add vehicle part");
         }
@@ -140,18 +129,14 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<AddServiceTaskResponse> AddServiceTask(AddServiceTaskRequest request,
-        ServerCallContext context)
-    {
-        var response = new AddServiceTaskResponse
-        {
+        ServerCallContext context) {
+        var response = new AddServiceTaskResponse {
             Success = false,
             Message = ""
         };
 
-        try
-        {
-            var entity = new ServiceTaskEntity
-            {
+        try {
+            var entity = new ServiceTaskEntity {
                 OrderId = request.OrderId,
                 Description = request.Description,
                 LaborCost = request.LaborCost
@@ -164,8 +149,7 @@ public class WorkshopServiceImplementation(
             response.Message = "Service task added successfully";
             response.ServiceTask = ServiceTaskMapper.ToProto(created.Entity);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to add service task");
         }
@@ -174,18 +158,14 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<AddServicePartResponse> AddServicePart(AddServicePartRequest request,
-        ServerCallContext context)
-    {
-        var response = new AddServicePartResponse
-        {
+        ServerCallContext context) {
+        var response = new AddServicePartResponse {
             Success = false,
             Message = ""
         };
 
-        try
-        {
-            var entity = new ServicePartEntity
-            {
+        try {
+            var entity = new ServicePartEntity {
                 OrderId = request.OrderId,
                 VehiclePartId = request.VehiclePartId,
                 Quantity = request.Quantity
@@ -198,8 +178,7 @@ public class WorkshopServiceImplementation(
             response.Message = "Service part added successfully";
             response.ServicePart = ServicePartMapper.ToProto(created.Entity);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to add service part");
         }
@@ -208,21 +187,16 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<AddServiceCommentResponse> AddServiceComment(
-        AddServiceCommentRequest request, ServerCallContext context)
-    {
-        var response = new AddServiceCommentResponse
-        {
+        AddServiceCommentRequest request, ServerCallContext context) {
+        var response = new AddServiceCommentResponse {
             Success = false,
             Message = ""
         };
 
-        try
-        {
-            var entity = new ServiceCommentEntity
-            {
+        try {
+            var entity = new ServiceCommentEntity {
                 OrderId = request.OrderId,
                 Content = request.Content,
-                CreatedAt = DateTime.UtcNow
             };
 
             var created = _dbContext.ServiceComments.Add(entity);
@@ -232,8 +206,7 @@ public class WorkshopServiceImplementation(
             response.Message = "Service comment added successfully";
             response.ServiceComment = ServiceCommentMapper.ToProto(created.Entity);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to add service comment");
         }
@@ -242,20 +215,16 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<GetVehicleResponse> GetVehicle(GetVehicleRequest request,
-        ServerCallContext context)
-    {
-        var response = new GetVehicleResponse
-        {
+        ServerCallContext context) {
+        var response = new GetVehicleResponse {
             Success = false,
             Message = "",
         };
 
-        try
-        {
+        try {
             var entity = await _dbContext.Vehicles.FindAsync(request.VehicleId);
 
-            if (entity == null)
-            {
+            if (entity == null) {
                 response.Message = "Vehicle not found";
                 _logger.LogWarning("Vehicle with Id={VehicleId} not found", request.VehicleId);
                 return response;
@@ -266,8 +235,7 @@ public class WorkshopServiceImplementation(
             response.Vehicle = VehicleMapper.ToProto(entity);
 
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to get vehicle");
             return response;
@@ -277,16 +245,13 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<GetVehiclePartResponse> GetVehiclePart(GetVehiclePartRequest request,
-        ServerCallContext context)
-    {
-        var response = new GetVehiclePartResponse
-        {
+        ServerCallContext context) {
+        var response = new GetVehiclePartResponse {
             Success = false,
             Message = ""
         };
 
-        try
-        {
+        try {
             var entity = await _dbContext.VehicleParts.FindAsync(request.VehiclePartId);
             if (entity == null)
             {
@@ -299,8 +264,7 @@ public class WorkshopServiceImplementation(
             response.VehiclePart = VehiclePartMapper.ToProto(entity);
 
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to get vehicle part");
         }
@@ -309,16 +273,13 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<SearchVehiclesResponse> SearchVehicles(SearchVehiclesRequest request,
-        ServerCallContext context)
-    {
-        var response = new SearchVehiclesResponse
-        {
+        ServerCallContext context) {
+        var response = new SearchVehiclesResponse {
             Success = false,
             Message = "",
         };
 
-        try
-        {
+        try {
             var query = _dbContext.Vehicles.AsQueryable();
 
             if (!string.IsNullOrEmpty(request.Brand))
@@ -347,8 +308,7 @@ public class WorkshopServiceImplementation(
 
 
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to search vehicles");
         }
@@ -358,16 +318,13 @@ public class WorkshopServiceImplementation(
     }
 
     public override async Task<SearchVehiclePartsResponse> SearchVehicleParts(
-        SearchVehiclePartsRequest request, ServerCallContext context)
-    {
-        var response = new SearchVehiclePartsResponse
-        {
+        SearchVehiclePartsRequest request, ServerCallContext context) {
+        var response = new SearchVehiclePartsResponse {
             Success = false,
             Message = ""
         };
 
-        try
-        {
+        try {
             var query = _dbContext.VehicleParts.AsQueryable();
 
             if (!string.IsNullOrEmpty(request.Name))
@@ -397,8 +354,7 @@ public class WorkshopServiceImplementation(
             response.TotalCount = totalCount;
             response.VehiclePart.AddRange(entities.Select(VehiclePartMapper.ToProto));
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to search vehicle parts");
         }
@@ -406,42 +362,60 @@ public class WorkshopServiceImplementation(
         return response;
     }
 
-    public override async Task<GetOrderResponse> GetOrder(GetOrderRequest request,
-        ServerCallContext context)
-    {
-        var response = new GetOrderResponse
-        {
+    public override async Task<GetOrderResponse> GetOrder(GetOrderRequest request, ServerCallContext context) {
+        _logger.LogInformation($"GetOrder called with ID={request.ServiceOrderId}");
+        _logger.LogInformation($"GetOrder called with ID={request.ServiceOrderId}");
+        var response = new GetOrderResponse {
             Success = false,
             Message = ""
         };
-
-        try
-        {
+        try {
             var entity = await _dbContext.ServiceOrders
                 .Include(o => o.Vehicle)
                 .Include(o => o.ServiceTasks)
                 .Include(o => o.ServiceParts)
                 .Include(o => o.ServiceComments)
-                .FirstOrDefaultAsync(o => o.Id == int.Parse(request.ServiceOrderId));
-
-            if (entity == null)
-            {
+                .FirstOrDefaultAsync(o => o.Id == request.ServiceOrderId);
+        
+            if (entity == null) {
                 response.Message = $"Order with ID={request.ServiceOrderId} not found";
                 return response;
             }
 
+            UserDto? mechanic = null;
+
+            if (entity.AssignedMechanicId != null) {
+                var getUserResponse = await _authClient.GetUserAsync(new GetUserRequest {
+                    UserId = entity.AssignedMechanicId.Value
+                });
+            
+                mechanic = getUserResponse.User;
+                if (mechanic == null) {
+                    response.Message = $"User with ID={request.ServiceOrderId} not found";
+                    return response;
+                }
+            }
+            
+            
+            
             response.Success = true;
             response.Message = "OK";
-            response.ServiceCompleteOrder = ServiceOrderMapper.ToProto(entity);
+            response.ServiceCompleteOrder = ServiceCompleteOrderMapper.ToProto(entity, mechanic);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             response.Message = $"Error: {ex.Message}";
             _logger.LogError(ex, "Failed to get order");
         }
-
+        
         return response;
     }
+    // public override Task<GetOrderResponse> GetOrder(GetOrderRequest request, ServerCallContext context) {
+    //     var response = new GetOrderResponse {
+    //         Success = true,
+    //         Message = "Test"
+    //     };
+    //     return Task.FromResult(response);
+    // }
 
     public override async Task<SearchOrdersResponse> SearchOrders(SearchOrdersRequest request,
         ServerCallContext context)
@@ -454,9 +428,6 @@ public class WorkshopServiceImplementation(
 
         var query = _dbContext.ServiceOrders
             .Include(o => o.Vehicle)
-            .Include(o => o.ServiceTasks)
-            .Include(o => o.ServiceParts)
-            .Include(o => o.ServiceComments)
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(request.VehicleBrand))
@@ -471,14 +442,12 @@ public class WorkshopServiceImplementation(
         if (!string.IsNullOrEmpty(request.VehicleVin))
             query = query.Where(o => o.Vehicle.Vin.Contains(request.VehicleVin));
 
-        if (request.CreatedAfter != null)
-        {
+        if (request.CreatedAfter != null) {
             var after = request.CreatedAfter.ToDateTime();
             query = query.Where(o => o.CreatedAt >= after);
         }
 
-        if (request.CreatedBefore != null)
-        {
+        if (request.CreatedBefore != null) {
             var before = request.CreatedBefore.ToDateTime();
             query = query.Where(o => o.CreatedAt <= before);
         }
@@ -493,7 +462,7 @@ public class WorkshopServiceImplementation(
         response.Success = true;
         response.Message = "OK";
         response.TotalCount = totalCount;
-        response.ServiceOrders.AddRange(entities.Select(ServiceOrderMapper.ToProto);
+        response.ServiceOrders.AddRange(entities.Select(ServiceOrderMapper.ToProtoWithVehicle));
 
         return response;
     }
