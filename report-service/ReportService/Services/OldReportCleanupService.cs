@@ -5,15 +5,18 @@ using MongoDB.Driver;
 using ReportService.Data;
 using ReportService.Entities;
 using ReportService.Services;
+using Shared.Grpc.Services;
 
 namespace ReportService.Services;
 public class OldReportCleanupService(
     BlobStorageService blobStorageService,
     ILogger<OldReportCleanupService> logger,
+    WorkshopStatusPublisher workshopStatusPublisher,
     MongoDbContext mongoDbContext
     ) : BackgroundService {
     private readonly BlobStorageService _blobStorageService = blobStorageService;
     private readonly ILogger<OldReportCleanupService> _logger = logger;
+    private readonly IWorkshopStatusPublisher _workshopStatusPublisher = workshopStatusPublisher;
     private readonly MongoDbContext _mongoDbContext = mongoDbContext;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -63,6 +66,7 @@ public class OldReportCleanupService(
                 Builders<ReportEntity>.Filter.Eq(r => r.Id, report.Id),
                 update
             );
+            _workshopStatusPublisher.PublishStatusChange(report.OrderId.ToString(), "EXPIRED");
         }
 
         _logger.LogInformation("✅ Expired report cleanup finished.");

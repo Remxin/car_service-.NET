@@ -10,4 +10,5 @@ service ReportService {
     rpc GetReportStatus (GetReportStatusRequest) returns (GetReportStatusResponse);
     rpc GetReportDownloadLink (GetReportDownloadLinkRequest) returns (GetReportDownloadLinkResponse);
     rpc SendEmailWithReport (SendEmailWithReportRequest) returns (SendEmailWithReportResponse);
+    rpc GetReportsList(GetReportsListRequest) returns (GetReportsListResponse);
   }

@@ -58,6 +58,7 @@ builder.Services.AddSingleton<IConnection>(sp => {
     }
 });
 builder.Services.AddSingleton<IWorkshopEventPublisher, WorkshopEventPublisher>();
+builder.Services.AddHostedService<WorkshopServiceEventSubscriber>();
 builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
     options.Address = new Uri(config.AuthServiceUrl);
 });

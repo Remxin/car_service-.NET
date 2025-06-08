@@ -5,6 +5,7 @@ using MongoDB.Driver;
 using ReportService;
 using ReportService.Entities;
 using Shared.Grpc.Messages;
+using Shared.Grpc.Models;
 
 namespace ReportService.Services;
 
@@ -14,12 +15,14 @@ public class ReportServiceImplementation(
     MongoDbContext mongoDbContext,
     PdfGeneratorService pdfGeneratorService,
     ReportServiceEventPublisher reportServiceEventPublisher,
+    WorkshopStatusPublisher workshopStatusPublisher,
     ILogger<ReportServiceImplementation> logger
     ) : Shared.Grpc.Services.ReportService.ReportServiceBase {
     private readonly BlobStorageService _blobStorageService = blobStorageService;
     private readonly MongoDbContext _mongoDbContext = mongoDbContext;
     private readonly PdfGeneratorService _pdfGeneratorService = pdfGeneratorService;
     private readonly ReportServiceEventPublisher _reportServiceEventPublisher = reportServiceEventPublisher;
+    private readonly WorkshopStatusPublisher _workshopStatusPublisher = workshopStatusPublisher;
     private readonly ILogger<ReportServiceImplementation> _logger = logger;
     
     public override async Task<GetReportDownloadLinkResponse> GetReportDownloadLink(GetReportDownloadLinkRequest request,
@@ -96,6 +99,7 @@ public class ReportServiceImplementation(
         }
         _logger.LogInformation($"Generated report: {report.ReportUrl}");
         response.Status = report.Status;
+        _workshopStatusPublisher.PublishStatusChange(report.OrderId.ToString(), report.Status);
         return response;
     }
 
@@ -143,6 +147,46 @@ public class ReportServiceImplementation(
         response.Message = "Email sent";
         response.Success = true;
         
+        return response;
+    }
+
+    public override async Task<GetReportsListResponse> GetReportsList(GetReportsListRequest request,
+        ServerCallContext context) {
+        var response = new GetReportsListResponse {
+            Reports = {}
+        };
+        
+        var filter = Builders<ReportEntity>.Filter.In(r => r.Status, new[] { "GENERATED", "EXPIRED" });
+
+        var reports = await _mongoDbContext.Reports
+            .Find(filter)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Limit(request.PageSize)
+            .ToListAsync();
+
+        foreach (var report in reports) {
+            var dto = new Report {
+                Id = report.Id.ToString(),
+                Vehicle = new Vehicle {
+                    Id = report.VehicleId,
+                    Model = report.Vehicle.Model,
+                    Year = report.Vehicle.Year,
+                    Brand = report.Vehicle.Brand,
+                    CreatedAt = Timestamp.FromDateTime(report.Vehicle.CreatedAt),
+                },
+                Mechanic = new UserDto {
+                    Id = report.User.Id,
+                    Name = report.User.Name,
+                    Email = report.User.Email
+                },
+                Status = report.Status,
+                CreatedAt = Timestamp.FromDateTime(report.CreatedAt),
+                ExpiresAt = Timestamp.FromDateTime(report.ExpiresAt),
+            };
+
+            response.Reports.Add(dto);
+        }
+
         return response;
     }
 }
