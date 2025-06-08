@@ -1,4 +1,5 @@
 import '@/app/globals.css';
+import ClientProviders from "@/app/ClientProviders";
 
 export const metadata = {
 	title: 'Car Service',
@@ -8,7 +9,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="pl">
-			<body>{children}</body>
+			<body>
+			<ClientProviders>{children}</ClientProviders>
+			</body>
 		</html>
 	);
 }
