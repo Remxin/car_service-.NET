@@ -49,6 +49,66 @@ public class ServicePartController(
             return StatusCode(500, new AddServicePartResponse { Success = false, Message = "Internal server error" });
         }
     }
+    
+    [HttpPatch]
+    public async Task<IActionResult> UpdateServicePart([FromBody] UpdateServicePartRequest body)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new AddServicePartResponse { Success = false, Message = "No token provided" });
+        }
+
+        try
+        {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.UpdateServicePartAsync(new UpdateServicePartRequest{
+                OrderId = body.OrderId,
+                VehiclePartId = body.VehiclePartId,
+                Quantity = body.Quantity,
+                ServicePartId = body.ServicePartId
+                
+            });
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding service part");
+            return StatusCode(500, new AddServicePartResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+    
+    [HttpDelete("{partId}")]
+    public async Task<IActionResult> DeleteServicePart(int partId)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new AddServicePartResponse { Success = false, Message = "No token provided" });
+        }
+
+        try
+        {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.DeleteServicePartAsync(new DeleteServicePartRequest { ServicePartId = partId });
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding service part");
+            return StatusCode(500, new AddServicePartResponse { Success = false, Message = "Internal server error" });
+        }
+    }
 
     private string? GetAccessToken()
     {

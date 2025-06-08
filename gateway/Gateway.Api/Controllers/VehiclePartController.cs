@@ -94,6 +94,57 @@ public class VehiclePartController(
             return StatusCode(500, new SearchVehiclePartsResponse { Success = false, Message = "Internal server error" });
         }
     }
+    
+    [HttpPatch]
+    public async Task<IActionResult> DeletePart([FromBody] DeleteVehiclePartRequest body)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new GetOrderResponse { Success = false, Message = "No token provided" });
+        }
+
+        try {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.DeleteVehiclePartAsync(body);
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving order");
+            return StatusCode(500, new GetOrderResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+    
+    [HttpDelete("{partId}")]
+    public async Task<IActionResult> DeleteOrder(int partId)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new GetOrderResponse { Success = false, Message = "No token provided" });
+        }
+
+        try {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.DeleteVehiclePartAsync(new DeleteVehiclePartRequest() { VehiclePartId = partId } );
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving order");
+            return StatusCode(500, new GetOrderResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+
 
     private string? GetAccessToken()
     {

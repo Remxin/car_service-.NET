@@ -48,6 +48,57 @@ public class ServiceCommentController(
         } 
     }
     
+    [HttpPatch]
+    public async Task<IActionResult> UpdateComment([FromBody] UpdateServiceCommentRequest body)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new GetOrderResponse { Success = false, Message = "No token provided" });
+        }
+
+        try {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.UpdateServiceCommentAsync(body);
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving order");
+            return StatusCode(500, new GetOrderResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+    
+    [HttpDelete("{commentId}")]
+    public async Task<IActionResult> DeleteOrder(int commentId)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new GetOrderResponse { Success = false, Message = "No token provided" });
+        }
+
+        try {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.DeleteServiceCommentAsync(new DeleteServiceCommentRequest { ServiceCommentId = commentId } );
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving order");
+            return StatusCode(500, new GetOrderResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+
+    
     private string? GetAccessToken()
     {
         var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();

@@ -49,6 +49,61 @@ public class ServiceTaskController(
             return StatusCode(500, new AddServiceTaskResponse { Success = false, Message = "Internal server error" });
         }
     }
+    
+    [HttpPatch]
+    public async Task<IActionResult> UpdateTask([FromBody] UpdateServiceTaskRequest body)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new AddServicePartResponse { Success = false, Message = "No token provided" });
+        }
+
+        try
+        {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.UpdateServiceTaskAsync(body);
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding service part");
+            return StatusCode(500, new AddServicePartResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+    
+    [HttpDelete("{taskId}")]
+    public async Task<IActionResult> DeleteTask(int taskId)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            _logger.LogWarning("Authorization header missing");
+            return Unauthorized(new AddServicePartResponse { Success = false, Message = "No token provided" });
+        }
+
+        try
+        {
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            if (!authres.Allowed)
+                return Unauthorized(authres);
+
+            var result = await _workshopServiceClient.DeleteServiceTaskAsync(new DeleteServiceTaskRequest { ServiceTaskId = taskId });
+
+            return result.Success ? Ok(result) : BadRequest((object)result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding service part");
+            return StatusCode(500, new AddServicePartResponse { Success = false, Message = "Internal server error" });
+        }
+    }
+
 
     private string? GetAccessToken()
     {
