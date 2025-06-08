@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "Shared.Grpc.Models";
+
+package car_service;
+
+import "models/user_dto.proto";
+import "models/vehicle.proto";
+import "google/protobuf/timestamp.proto";
+
+message Report {
+  string id = 1;
+  Vehicle vehicle = 2;
+  UserDto mechanic = 3;
+  string status = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  google.protobuf.Timestamp created_at = 6;
+}

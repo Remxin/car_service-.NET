@@ -63,6 +63,8 @@ builder.Services.AddSingleton<IConnection>(sp => {
 });
 builder.Services.AddSingleton<ReportServiceEventSubscriber>();
 builder.Services.AddSingleton<ReportServiceEventPublisher>();
+builder.Services.AddSingleton<WorkshopStatusPublisher>();
+builder.Services.AddSingleton<IWorkshopStatusPublisher>(sp => sp.GetRequiredService<WorkshopStatusPublisher>());
 builder.Services.AddSingleton<BlobStorageService>(sp =>{
     var logger = sp.GetRequiredService<ILogger<BlobStorageService>>();
     return new BlobStorageService(

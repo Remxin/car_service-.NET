@@ -26,6 +26,7 @@
   <ItemGroup>
     <Folder Include="Converters\" />
     <Folder Update="..\..\..\..\.nuget\packages\shared.grpc\1.0.1\contentFiles\any\protos\models" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
 
   <Target Name="ShowNuGetPackageRoot" BeforeTargets="Build">

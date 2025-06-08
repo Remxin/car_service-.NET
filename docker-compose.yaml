@@ -1,6 +1,7 @@
 ﻿services:
   message-broker:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.12.6-management
+    platform: linux/amd64
     ports:
       - "${MESSAGE_BROKER_PORT}:15672"
       - "${MESSAGE_BROKER_COMMUNICATION_PORT}:5672"
@@ -8,7 +9,7 @@
       - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
       - rabbitmq-data:/var/lib/rabbitmq
     environment:
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"'
 
   auth-db:
     image: postgres:15
@@ -38,7 +39,7 @@
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=secret123
     volumes:
-      - ./infrastructure/mongodb:/docker-entrypoint-initdb.d 
+      - ./infrastructure/mongodb:/docker-entrypoint-initdb.d
       - report-db-data:/data/db
 
   auth-service:
@@ -55,7 +56,8 @@
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}"
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
-    entrypoint: ["/wait-for-it.sh", "auth-db", "5432", "--", "dotnet", "AuthService.dll"]
+    entrypoint:
+      ["/wait-for-it.sh", "auth-db", "5432", "--", "dotnet", "AuthService.dll"]
 
   workshop-service:
     depends_on:
@@ -65,22 +67,21 @@
     build:
       context: .
       dockerfile: workshop-service/WorkshopService/Dockerfile
-    env_file:
-      ./env/workshop-service/workshop.prod.env
+    env_file: ./env/workshop-service/workshop.prod.env
     environment:
       - ASPNETCORE_URLS=http://+:${WORKSHOP_SERVICE_PORT}
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
     ports:
       - "${WORKSHOP_SERVICE_PORT}:${WORKSHOP_SERVICE_PORT}"
-    entrypoint: 
-        - /bin/bash
-        - -c
-        - |
-          /wait-for-it.sh workshop-db 5432 -- \
-          && /wait-for-it.sh message-broker 5672 -- \
-          && /wait-for-it.sh auth-service ${AUTH_SERVICE_PORT} -- \
-          && dotnet WorkshopService.dll
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        /wait-for-it.sh workshop-db 5432 -- \
+        && /wait-for-it.sh message-broker 5672 -- \
+        && /wait-for-it.sh auth-service ${AUTH_SERVICE_PORT} -- \
+        && dotnet WorkshopService.dll
 
   report-service:
     depends_on:
@@ -89,21 +90,20 @@
     build:
       context: .
       dockerfile: report-service/ReportService/Dockerfile
-    env_file:
-      ./env/report-service/report.prod.env
+    env_file: ./env/report-service/report.prod.env
     environment:
       - ASPNETCORE_URLS=http://+:${REPORT_SERVICE_PORT}
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
     ports:
       - "${REPORT_SERVICE_PORT}:${REPORT_SERVICE_PORT}"
-    entrypoint: 
-        - /bin/bash
-        - -c
-        - |
-          /wait-for-it.sh report-db ${REPORT_DB_PORT} -- \
-          && /wait-for-it.sh message-broker 5672 -- \
-          && dotnet ReportService.dll
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        /wait-for-it.sh report-db ${REPORT_DB_PORT} -- \
+        && /wait-for-it.sh message-broker 5672 -- \
+        && dotnet ReportService.dll
 
   email-service:
     depends_on:
@@ -111,11 +111,10 @@
     build:
       context: .
       dockerfile: email-service/EmailService/Dockerfile
-    env_file:
-      ./env/email-service/email.prod.env
+    env_file: ./env/email-service/email.prod.env
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
-    entrypoint: 
+    entrypoint:
       - /bin/bash
       - -c
       - |
@@ -130,7 +129,7 @@
       context: .
       dockerfile: file-upload-service/FileUploadService/Dockerfile
     env_file:
-      ./env/file-upload-service/file-upload.prod.env
+      - ./env/file-upload-service/file-upload.prod.env
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
       - file-upload-uploads:/app/Uploads 
@@ -144,6 +143,34 @@
       - |
         /wait-for-it.sh auth-service ${AUTH_SERVICE_PORT} -- \
         && dotnet FileUploadService.dll
+
+  gateway:
+    platform: linux/amd64 
+    depends_on:
+      - auth-service
+      - workshop-service
+      - report-service
+    build:
+      context: .
+      dockerfile: gateway/Gateway.Api/Dockerfile
+    env_file:
+      - ./env/gateway/gateway.prod.env
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+    environment:
+      - ASPNETCORE_URLS=http://+:${GATEWAY_PORT}
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    entrypoint: 
+      - /bin/bash
+      - -c
+      - |
+        /wait-for-it.sh auth-service ${AUTH_SERVICE_PORT} -- \
+        && /wait-for-it.sh workshop-service ${WORKSHOP_SERVICE_PORT} \
+        && /wait-for-it.sh report-service ${REPORT_SERVICE_PORT} \
+        && dotnet Gateway.Api.dll
+
+
 
 
 
