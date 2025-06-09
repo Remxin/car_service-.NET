@@ -40,7 +40,7 @@ message VerifyUserResponse {
   bool isValid = 1;
   string message = 2;
   UserDto user = 3;
-  repeated string permissions = 4; 
+  repeated string roles = 4;
 }
 
 message VerifyActionRequest {
