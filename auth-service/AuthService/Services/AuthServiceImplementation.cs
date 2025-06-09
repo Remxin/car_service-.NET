@@ -113,32 +113,31 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
             return response;
         }
 
-        var userWithPermissions = await _dbContext.Users
+        var userWithRoles = await _dbContext.Users
             .Where(u => u.Id == userId)
             .Select(u => new {
                 User = u,
-                Permissions = u.UserRoles
-                    .SelectMany(ur => ur.Role.RolePermissions)
-                    .Select(rp => rp.Permission.Name)
+                Roles = u.UserRoles
+                    .Select(ur => ur.Role.Name)
                     .Distinct()
                     .ToList()
             })
             .FirstOrDefaultAsync();
 
-        if (userWithPermissions == null)
+        if (userWithRoles == null)
         {
             response.Message = "User not found";
             return response;
         }
 
-        var user = userWithPermissions.User;
-        var permissionNames = userWithPermissions.Permissions;
+        var user = userWithRoles.User;
+        var permissionNames = userWithRoles.Roles;
         
         
         response.Message = "Ok";
         response.IsValid = true;
         response.User = user.ToProtoDto();
-        response.Permissions.AddRange(permissionNames);
+        response.Roles.AddRange(permissionNames);
         
         _logger.LogInformation($"User {user.Email} verified");
         return response;
