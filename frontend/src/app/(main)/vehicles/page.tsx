@@ -5,6 +5,7 @@ import { VehicleCard } from '@/components/Vehicle/VehicleCard';
 import AddButton from "@/components/AddButton";
 import { useState } from "react";
 import { AddVehicleModal } from "@/components/Vehicle/AddVehicleModal";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const MOCK_VEHICLES = [
 	{

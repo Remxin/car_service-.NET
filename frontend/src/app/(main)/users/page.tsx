@@ -4,6 +4,7 @@ import { UserRow } from '@/components/User/UserRow';
 import AddButton from "@/components/AddButton";
 import { useState } from "react";
 import { AddUserModal } from "@/components/User/AddUserModal";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const MOCK_USERS = [
 	{

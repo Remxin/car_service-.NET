@@ -2,9 +2,9 @@
 
 import { Mail, Lock } from 'lucide-react'; // zainstaluj: npm install lucide-react
 import { useForm } from 'react-hook-form';
-import { useLoginMutation } from '@/store/api/authApi';
+import { useLoginMutation, useVerifyMutation } from "@/store/api/authApi";
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setCredentials } from '@/store/authSlice';
+import { setCredentials, setUser } from '@/store/authSlice';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -16,9 +16,10 @@ interface FormData {
 export default function LoginPage() {
 	const dispatch = useAppDispatch();
 	const router = useRouter();
-	const isAuth = useAppSelector((state) => state.auth.isAuthenticated);
+	const isAuth = useAppSelector((state) => state.auth.token);
 
 	const [login, { isLoading }] = useLoginMutation();
+	const [verify] = useVerifyMutation();
 	const { register, handleSubmit } = useForm<FormData>();
 
 	useEffect(() => {
@@ -30,12 +31,22 @@ export default function LoginPage() {
 			const res = await login(data).unwrap();
 			if (res.success && res.token) {
 				dispatch(setCredentials({ token: res.token }));
-				router.push('/orders');
+
+				const verifyRes = await verify().unwrap();
+				if (verifyRes.isValid && verifyRes.user) {
+					dispatch(setUser({
+						...verifyRes.user,
+						roles: verifyRes.roles
+					}));
+					router.push('/orders');
+				} else {
+					alert('Nie udało się zweryfikować użytkownika.');
+				}
 			} else {
 				alert(res.message);
 			}
-		} catch {
-			alert('Błąd serwera, spróbuj ponownie.');
+		} catch (e) {
+			alert('Błąd serwera. Spróbuj ponownie.');
 		}
 	};
 

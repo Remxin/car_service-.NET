@@ -1,4 +1,5 @@
 import { ReportCard } from '@/components/ReportCard';
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const MOCK_REPORTS = [
 	{

@@ -5,6 +5,7 @@ import PartCard  from '@/components/Part/PartCard';
 import AddButton from "@/components/AddButton";
 import { useState } from "react";
 import AddPartModal from "@/components/Part/AddPartModal";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 
 const MOCK_PARTS = [

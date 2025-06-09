@@ -4,6 +4,7 @@ import OrderCard  from '@/components/Order/OrderCard';
 import AddButton from '@/components/AddButton';
 import AddOrderModal from '@/components/Order/AddOrderModal';
 import { useState } from "react";
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const MOCK_ORDERS = [
 	{
