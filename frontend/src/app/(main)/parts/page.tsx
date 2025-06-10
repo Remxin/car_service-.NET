@@ -5,7 +5,7 @@ import PartCard  from '@/components/Part/PartCard';
 import AddButton from "@/components/AddButton";
 import { useState } from "react";
 import AddPartModal from "@/components/Part/AddPartModal";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
+import AuthGuard from "@/components/AuthGuard";
 
 
 const MOCK_PARTS = [
@@ -52,6 +52,7 @@ export default function PartsPage() {
 
 
 	return (
+		<AuthGuard allowedRoles={['admin', 'mechanic', 'reception']}>
 		<div className="p-2">
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-4xl font-bold text-zinc-800">Parts</h1>
@@ -65,6 +66,6 @@ export default function PartsPage() {
 
 			<AddPartModal open={open} onClose={() => setOpen(false)} />
 		</div>
-
+		</AuthGuard>
 	);
 }

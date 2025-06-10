@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { Role } from '@/types/auth.types';
 import { User, RemoveRoleBody, AddRoleBody, RegisterRequestBody, LoginRequestBody, LoginResponse, VerifyResponse } from '@/types/auth.types';
 
 export const authApi = createApi({
@@ -7,6 +8,7 @@ export const authApi = createApi({
 		baseUrl: 'http://localhost:5010/v1/users',
 		prepareHeaders: (headers, { getState }) => {
 			const token = (getState() as any).auth.token;
+			console.log('Token:', token);
 			if (token) headers.set('Authorization', `Bearer ${token}`);
 			return headers;
 		},
@@ -15,8 +17,14 @@ export const authApi = createApi({
 	endpoints: (build) => ({
 		getUsers: build.query<User[], void>({
 			query: () => `/`,
-			providesTags: (result = []) =>
-				result.map((u) => ({ type: 'Users' as const, id: u.id })),
+			transformResponse: (response: { usersWithRoles: { user: User; roleName: Role[] }[] }) => {
+				return response.usersWithRoles.map(({ user, roleName }) => ({
+					...user,
+					roles: roleName,
+				}));
+			},
+			providesTags: (result) =>
+				result ? result.map((u) => ({ type: 'Users', id: u.id })) : [],
 		}),
 		login: build.mutation<LoginResponse, LoginRequestBody>({
 			query: (body) => ({

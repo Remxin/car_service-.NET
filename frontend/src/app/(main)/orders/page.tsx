@@ -4,7 +4,7 @@ import OrderCard  from '@/components/Order/OrderCard';
 import AddButton from '@/components/AddButton';
 import AddOrderModal from '@/components/Order/AddOrderModal';
 import { useState } from "react";
-import { useAuthGuard } from '@/hooks/useAuthGuard';
+import AuthGuard from "@/components/AuthGuard";
 
 const MOCK_ORDERS = [
 	{
@@ -73,6 +73,7 @@ export default function OrdersPage() {
 	};
 
 	return (
+	<AuthGuard allowedRoles={['admin','reception', 'mechanic']}>
 		<div className="p-2">
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-4xl font-bold text-zinc-800">Orders</h1>
@@ -87,6 +88,7 @@ export default function OrdersPage() {
 
 			<AddOrderModal open={open} onClose={() => setOpen(false)} />
 		</div>
+	</AuthGuard>
 	);
 }
 

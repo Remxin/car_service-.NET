@@ -29,15 +29,13 @@ export type RegisterRequestBody = {
 };
 
 export type AddRoleBody = {
-	userId: number;
-	roleId: number;
-	token: string;
+	userId: string;
+	roleId: string;
 };
 
 export type RemoveRoleBody = {
-	userId: number;
-	roleId: number;
-	token: string;
+	userId: string;
+	roleId: string;
 };
 
 export type VerifyResponse = {

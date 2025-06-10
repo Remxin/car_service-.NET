@@ -1,5 +1,5 @@
 import { ReportCard } from '@/components/ReportCard';
-import { useAuthGuard } from "@/hooks/useAuthGuard";
+import AuthGuard from '@/components/AuthGuard';
 
 const MOCK_REPORTS = [
 	{
@@ -23,7 +23,9 @@ const MOCK_REPORTS = [
 ];
 
 export default function ReportsPage() {
+
 	return (
+		<AuthGuard allowedRoles={['admin']}>
 		<div className="p-2">
 			<h1 className="text-4xl font-bold text-zinc-800 mb-6">Raporty</h1>
 			<div className="space-y-4">
@@ -32,5 +34,6 @@ export default function ReportsPage() {
 				))}
 			</div>
 		</div>
+		</AuthGuard>
 	);
 }

@@ -1,35 +1,31 @@
-'use client';
-
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
+import { Role } from "@/types/auth.types";
 
 interface UserRowProps {
 	id: number;
 	name: string;
 	email: string;
-	role: 'admin' | 'mechanic' | 'reception';
+	roles: Role[];
 	createdAt: string;
+	addRole: (userId: number, roleId: number) => void;
+	removeRole: (userId: number, roleId: number) => void;
 }
 
-export function UserRow({ id, name, email, role, createdAt }: UserRowProps) {
+export function UserRow(props: UserRowProps) {
+	const { id, name, email, roles, createdAt, addRole, removeRole } = props;
 	const [isEditing, setIsEditing] = useState(false);
-	const [newRole, setNewRole] = useState(role);
+	const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
 
-	const roleColor = {
-		admin: 'text-orange-600',
-		mechanic: 'text-blue-600',
-		reception: 'text-emerald-600',
-	}[role];
-
-	const handleSave = () => {
-		console.log(`Zmieniono rolę użytkownika ${id} na: ${newRole}`);
-		setIsEditing(false);
+	const handleAddRole = () => {
+		if (selectedRoleId !== null) {
+			addRole(id, selectedRoleId);
+			setSelectedRoleId(null);
+		}
 	};
 
-	const handleRemove = () => {
-		console.log(`Usunięto rolę użytkownika ${id}`);
-		//setNewRole('');
-		setIsEditing(false);
+	const handleRemoveRole = (roleId: number) => {
+		removeRole(id, roleId);
 	};
 
 	return (
@@ -37,7 +33,22 @@ export function UserRow({ id, name, email, role, createdAt }: UserRowProps) {
 			<tr className="hover:bg-orange-300 transition">
 				<td className="px-4 py-3 font-medium text-zinc-800">{name}</td>
 				<td className="px-4 py-3 text-zinc-600">{email}</td>
-				<td className={`px-4 py-3 font-medium capitalize ${roleColor}`}>{role}</td>
+				<td className="px-4 py-3 font-medium capitalize">
+					{roles.map((role) => (
+						<span
+							key={role.id}
+							className="mr-2 text-gray-600"
+						>
+              					{role.name}
+							<button
+								onClick={() => handleRemoveRole(role.id)}
+								className="ml-2 text-red-500 hover:text-red-700"
+							>
+                x
+              </button>
+            </span>
+					))}
+				</td>
 				<td className="px-4 py-3 text-zinc-500">{createdAt}</td>
 				<td className="px-4 py-3 text-right space-x-2">
 					<button
@@ -54,25 +65,22 @@ export function UserRow({ id, name, email, role, createdAt }: UserRowProps) {
 					<td colSpan={5} className="bg-zinc-100 p-4">
 						<div className="flex items-center gap-4">
 							<select
-								value={newRole}
-								onChange={(e) => setNewRole(e.target.value as UserRowProps['role'])}
+								value={selectedRoleId || ''}
+								onChange={(e) => setSelectedRoleId(Number(e.target.value))}
 								className="border border-zinc-300 rounded px-2 py-1"
 							>
-								<option value="admin">Admin</option>
-								<option value="mechanic">Mechanic</option>
-								<option value="reception">Reception</option>
+								<option value="" disabled>
+									Wybierz rolę
+								</option>
+								<option value={1}>Admin</option>
+								<option value={2}>Mechanic</option>
+								<option value={3}>Reception</option>
 							</select>
 							<button
-								onClick={handleSave}
+								onClick={handleAddRole}
 								className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700"
 							>
-								Zapisz
-							</button>
-							<button
-								onClick={handleRemove}
-								className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-							>
-								Usuń rolę
+								Dodaj rolę
 							</button>
 							<button
 								onClick={() => setIsEditing(false)}

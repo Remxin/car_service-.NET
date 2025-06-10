@@ -15,7 +15,10 @@ function VerifyListener({ children }: { children: ReactNode }) {
 		if (!token) return;
 		verify().unwrap().then(res => {
 			if (res.isValid && res.user) {
-				dispatch(setUser(res.user));
+				dispatch(setUser({
+					...res.user,
+					roles: res.roles,
+				}));
 			} else {
 				dispatch(clearCredentials());
 			}

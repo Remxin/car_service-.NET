@@ -5,7 +5,7 @@ import { VehicleCard } from '@/components/Vehicle/VehicleCard';
 import AddButton from "@/components/AddButton";
 import { useState } from "react";
 import { AddVehicleModal } from "@/components/Vehicle/AddVehicleModal";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
+import AuthGuard from "@/components/AuthGuard";
 
 const MOCK_VEHICLES = [
 	{
@@ -50,6 +50,7 @@ export default function VehiclesPage() {
 	};
 
 	return (
+		<AuthGuard allowedRoles={['admin']}>
 		<div className="p-2">
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-4xl font-bold text-zinc-800">Vehicles</h1>
@@ -62,5 +63,6 @@ export default function VehiclesPage() {
 			</div>
 			<AddVehicleModal open={open} onClose={() => setOpen(false)} />
 		</div>
+		</AuthGuard>
 	);
 }
