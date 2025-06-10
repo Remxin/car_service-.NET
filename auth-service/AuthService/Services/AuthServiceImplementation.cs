@@ -253,6 +253,20 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
         _logger.LogInformation($"User {userId} removed role {roleId}");
         return response;
     }
+
+    public override async Task<GetUserResponse> GetUser(GetUserRequest request, ServerCallContext context) {
+        var user = await _dbContext.Users.FindAsync(request.UserId);
+        if (user == null) {
+            return new GetUserResponse {
+                User = null,
+            };
+        }
+
+        return new GetUserResponse {
+            User = user.ToProtoDto(),
+        };
+    }
+
     private async Task<(bool isAuthorized, int userId, string message)> Authorize(string token, string requiredPermission) {
         var tokenValid = _tokenService.VerifyToken(token);
         if (tokenValid == null)

@@ -30,7 +30,10 @@ public class ServicePartController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -50,8 +53,8 @@ public class ServicePartController(
         }
     }
     
-    [HttpPatch]
-    public async Task<IActionResult> UpdateServicePart([FromBody] UpdateServicePartRequest body)
+    [HttpPatch("{partId:int}")]
+    public async Task<IActionResult> UpdateServicePart(int partId, [FromBody] UpdateServicePartRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token))
@@ -62,15 +65,17 @@ public class ServicePartController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
             var result = await _workshopServiceClient.UpdateServicePartAsync(new UpdateServicePartRequest{
-                OrderId = body.OrderId,
                 VehiclePartId = body.VehiclePartId,
                 Quantity = body.Quantity,
-                ServicePartId = body.ServicePartId
+                ServicePartId = partId
                 
             });
 
@@ -95,7 +100,10 @@ public class ServicePartController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 

@@ -1,6 +1,6 @@
 namespace Gateway.Api.Models;
 
-public class AddVehicleRequestBody {
+public class UpdateVehicleRequestBody {
     public string CarImageUrl { get; set; }
     public string Brand { get; set; }
     public string Model { get; set; }

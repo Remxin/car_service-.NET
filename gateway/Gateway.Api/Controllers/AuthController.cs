@@ -77,43 +77,35 @@ public class AuthController (
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequestBody body) {
+    public async Task<IActionResult> Register([FromBody] RegisterRequest body) {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
             _logger.LogWarning("Authorization header missing");
-            return Unauthorized(new GetUsersWithRolesResponse {
-                UsersWithRoles = { }
+            return Unauthorized(new RegisterResponse {
+                Success = false,
+                Message = "No token provided"
             });
         }
 
         try {
             var perm = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
-                Token = body.Password,
+                Token = token,
                 Action = "manage_users"
             });
+            _logger.LogInformation(body.Email);
             if (!perm.Allowed) {
-                _logger.LogWarning("User has not permissions");
+              
+                _logger.LogWarning($"User has no permissions {perm.Message}, {token}");
                 return Unauthorized(
                     new RegisterResponse {
+                        Success = false,
                         Message = perm.Message,
                     });
             }
 
-            var res = await _authServiceClient.RegisterAsync(new RegisterRequest{
-                Email = body.Email,
-                Password = body.Password,
-                FirstName = body.FirstName,
-                LastName = body.LastName,
-            });
-            if (!res.Success) {
-                _logger.LogWarning("Failed to register new user");
-                return NotFound(new LoginResponse {
-                    Message = res.Message,
-                    Success = false
-                });
-            }
+            var res = await _authServiceClient.RegisterAsync(body);
 
-            return Ok(res);
+            return res.Success ? Ok(res) : BadRequest(res);
         }
         catch (Exception ex) {
             _logger.LogError(ex, "Failed to fetch users ");
@@ -136,7 +128,7 @@ public class AuthController (
 
         try {
             var res = await _authServiceClient.AddRoleAsync(new AddRoleRequest {
-                Token = body.Token,
+                Token = token,
                 RoleId = body.RoleId,
                 UserId = body.UserId
             });
@@ -174,7 +166,7 @@ public class AuthController (
 
         try {
             var res = await _authServiceClient.RemoveRoleAsync(new RemoveRoleRequest {
-                Token = body.Token,
+                Token = token,
                 RoleId = body.RoleId,
                 UserId = body.UserId
             });

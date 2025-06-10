@@ -26,7 +26,10 @@ public class ReportController (
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "list_reports"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -39,7 +42,7 @@ public class ReportController (
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding order");
+            _logger.LogError(ex, "Error getting report");
             return StatusCode(500, new AddOrderResponse { Success = false, Message = "Internal server error" });
         }
     }
@@ -54,7 +57,10 @@ public class ReportController (
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "list_reports"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -81,7 +87,10 @@ public class ReportController (
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "generate_reports"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -106,7 +115,10 @@ public class ReportController (
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "list_reports"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -132,7 +144,10 @@ public class ReportController (
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "list_reports"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 

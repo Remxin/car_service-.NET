@@ -18,7 +18,7 @@ public class ServiceCommentController(
     private readonly ILogger<ServiceCommentController> _logger = logger;
 
     [HttpPost]
-    public async Task<IActionResult> AddServiceComment([FromQuery] AddServiceCommentRequestBody body)
+    public async Task<IActionResult> AddServiceComment([FromBody] AddServiceCommentRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token))
@@ -29,7 +29,10 @@ public class ServiceCommentController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "add_service_comment",
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -48,8 +51,8 @@ public class ServiceCommentController(
         } 
     }
     
-    [HttpPatch]
-    public async Task<IActionResult> UpdateComment([FromBody] UpdateServiceCommentRequest body)
+    [HttpPatch("{commentId:int}")]
+    public async Task<IActionResult> UpdateComment(int commentId, [FromBody] UpdateServiceCommentRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
@@ -58,11 +61,17 @@ public class ServiceCommentController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "add_service_comment"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
-            var result = await _workshopServiceClient.UpdateServiceCommentAsync(body);
+            var result = await _workshopServiceClient.UpdateServiceCommentAsync(new UpdateServiceCommentRequest {
+                Content = body.Content,
+                ServiceCommentId = commentId
+            });
 
             return result.Success ? Ok(result) : BadRequest((object)result);
         }
@@ -74,7 +83,7 @@ public class ServiceCommentController(
     }
     
     [HttpDelete("{commentId}")]
-    public async Task<IActionResult> DeleteOrder(int commentId)
+    public async Task<IActionResult> DeleteOrderComment(int commentId)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
@@ -83,7 +92,10 @@ public class ServiceCommentController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { 
+                Token = token,
+                Action = "add_service_comment"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 

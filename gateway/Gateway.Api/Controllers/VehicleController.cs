@@ -29,7 +29,8 @@ public class VehicleController(
 
         try {
             var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
-                Token = token
+                Token = token,
+                Action = "list_vehicles"
             });
             if (!authres.Allowed) {
                 return Unauthorized(new GetVehicleResponse {
@@ -71,7 +72,8 @@ public class VehicleController(
 
         try {
             var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
-                Token = token
+                Token = token,
+                Action = "list_vehicles"
             });
             if (!authres.Allowed) {
                 return Unauthorized(authres);
@@ -97,7 +99,7 @@ public class VehicleController(
     
     
     [HttpPost]
-    public async Task<IActionResult> AddVehicle([FromQuery] AddVehicleRequestBody body) {
+    public async Task<IActionResult> AddVehicle([FromBody] AddVehicleRequestBody body) {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
             _logger.LogWarning("Authorization header missing");
@@ -109,7 +111,8 @@ public class VehicleController(
 
         try {
             var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
-                Token = token
+                Token = token,
+                Action = "add_vehicles"
             });
             if (!authres.Allowed) {
                 return Unauthorized(authres);
@@ -137,8 +140,8 @@ public class VehicleController(
         }
     }
     
-    [HttpPatch]
-    public async Task<IActionResult> UpdateVehicle([FromBody] UpdateVehicleRequest body)
+    [HttpPatch("{vehicleId:int}")]
+    public async Task<IActionResult> UpdateVehicle(int vehicleId, [FromBody] UpdateVehicleRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
@@ -147,11 +150,20 @@ public class VehicleController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "add_vehicles"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
-            var result = await _workshopServiceClient.UpdateVehicleAsync(body);
+            var result = await _workshopServiceClient.UpdateVehicleAsync(new UpdateVehicleRequest {
+                VehicleId = vehicleId,
+                Brand = body.Brand,
+                Model = body.Model,
+                CarImageUrl = body.CarImageUrl,
+                Year = body.Year,
+            });
 
             return result.Success ? Ok(result) : BadRequest((object)result);
         }
@@ -172,7 +184,10 @@ public class VehicleController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "add_vehicles"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
