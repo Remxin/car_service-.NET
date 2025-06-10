@@ -30,7 +30,10 @@ public class ServiceTaskController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -50,8 +53,8 @@ public class ServiceTaskController(
         }
     }
     
-    [HttpPatch]
-    public async Task<IActionResult> UpdateTask([FromBody] UpdateServiceTaskRequest body)
+    [HttpPatch("{taskId:int}")]
+    public async Task<IActionResult> UpdateTask(int taskId, [FromBody] UpdateServiceTaskRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token))
@@ -62,11 +65,18 @@ public class ServiceTaskController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
-            var result = await _workshopServiceClient.UpdateServiceTaskAsync(body);
+            var result = await _workshopServiceClient.UpdateServiceTaskAsync(new UpdateServiceTaskRequest {
+                Description = body.Description,
+                ServiceTaskId = taskId,
+                LaborCost = body.LaborCost
+            });
 
             return result.Success ? Ok(result) : BadRequest((object)result);
         }
@@ -89,7 +99,10 @@ public class ServiceTaskController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 

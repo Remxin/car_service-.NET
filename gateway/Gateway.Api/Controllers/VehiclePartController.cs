@@ -26,7 +26,10 @@ public class VehiclePartController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "create_service_order",
+            });
             if (!authres.Allowed) return Unauthorized(authres);
             var response = await _workshopServiceClient.AddVehiclePartAsync(body);
 
@@ -48,7 +51,10 @@ public class VehiclePartController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "list_vehicle_parts",
+            });
             if (!authres.Allowed) return Unauthorized(authres);
 
             var response = await _workshopServiceClient.GetVehiclePartAsync(new GetVehiclePartRequest { VehiclePartId = id });
@@ -72,7 +78,10 @@ public class VehiclePartController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "list_vehicle_parts",
+            });
             if (!authres.Allowed) return Unauthorized(authres);
 
             var request = new SearchVehiclePartsRequest
@@ -105,7 +114,10 @@ public class VehiclePartController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -130,7 +142,10 @@ public class VehiclePartController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 

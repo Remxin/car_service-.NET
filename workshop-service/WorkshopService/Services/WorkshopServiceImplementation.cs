@@ -394,7 +394,6 @@ public class WorkshopServiceImplementation(
 
     public override async Task<GetOrderResponse> GetOrder(GetOrderRequest request, ServerCallContext context) {
         _logger.LogInformation($"GetOrder called with ID={request.ServiceOrderId}");
-        _logger.LogInformation($"GetOrder called with ID={request.ServiceOrderId}");
         var response = new GetOrderResponse {
             Success = false,
             Message = ""
@@ -414,6 +413,7 @@ public class WorkshopServiceImplementation(
 
             UserDto? mechanic = null;
 
+            _logger.LogInformation($"Get order called with Mechanic_ID={entity.AssignedMechanicId}");
             if (entity.AssignedMechanicId != null) {
                 var getUserResponse = await _authClient.GetUserAsync(new GetUserRequest {
                     UserId = entity.AssignedMechanicId.Value
@@ -425,8 +425,6 @@ public class WorkshopServiceImplementation(
                     return response;
                 }
             }
-            
-            
             
             response.Success = true;
             response.Message = "OK";
@@ -538,7 +536,6 @@ public class WorkshopServiceImplementation(
     public override async Task<UpdateOrderResponse> UpdateOrder(UpdateOrderRequest request, ServerCallContext context)
     {
         var order = await _dbContext.ServiceOrders
-            .Include(o => o.Vehicle)
             .FirstOrDefaultAsync(o => o.Id == request.ServiceOrderId);
         if (order is null)
             return new UpdateOrderResponse {
@@ -561,8 +558,12 @@ public class WorkshopServiceImplementation(
         var mechanic = await _authClient.GetUserAsync(new GetUserRequest {
             UserId = order.AssignedMechanicId.Value
         });
+        var orderu = await _dbContext.ServiceOrders
+            .Include(o => o.Vehicle)
+            .FirstOrDefaultAsync(o => o.Id == request.ServiceOrderId);
+        
         _eventPublisher.PublishEvent("workshop.service.order.updated", new {
-            Vehicle = order.Vehicle,
+            Vehicle = orderu.Vehicle,
             OrderId = order.Id,
             Status = order.Status,
             User = mechanic
