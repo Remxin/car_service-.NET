@@ -29,7 +29,10 @@ public class OrderController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "create_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -49,7 +52,7 @@ public class OrderController(
         }
     }
 
-    [HttpGet("{orderId}")]
+    [HttpGet("{orderId:int}")]
     public async Task<IActionResult> GetOrder(int orderId)
     {
         var token = GetAccessToken();
@@ -61,7 +64,10 @@ public class OrderController(
 
         try
         {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "view_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
@@ -78,6 +84,7 @@ public class OrderController(
 
     [HttpGet]
     public async Task<IActionResult> SearchOrders([FromQuery] SearchOrdersRequestBody body) {
+        _logger.LogInformation($"Searching orders {body.PageSize} {body.Page}");
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
             _logger.LogWarning("Authorization header missing");
@@ -85,10 +92,14 @@ public class OrderController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "view_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
+        
             var result = await _workshopServiceClient.SearchOrdersAsync(new SearchOrdersRequest {
                 Page = body.Page,
                 PageSize = body.PageSize,
@@ -104,7 +115,8 @@ public class OrderController(
                     : null
             });
 
-            return result.Success ? Ok(result) : BadRequest((object)result);
+            _logger.LogInformation($"Searching orders {result.ServiceOrders}");
+            return result.Success ? Ok(result) : BadRequest(result);
         }
         catch (Exception ex) {
             _logger.LogError(ex, "Error searching orders");
@@ -112,9 +124,9 @@ public class OrderController(
         }
     }
     
-    [HttpPatch]
-    public async Task<IActionResult> UpdateOrder([FromBody] UpdateOrderRequest body)
-    {
+    [HttpPatch("{orderId:int}")]
+    public async Task<IActionResult> UpdateOrder(int orderId, [FromBody] UpdateOrderRequestBody body) {
+        _logger.LogInformation($"Updating order {orderId} {body.Status} {body.AssignedMechanicId}");
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
             _logger.LogWarning("Authorization header missing");
@@ -122,17 +134,25 @@ public class OrderController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
-
-            var result = await _workshopServiceClient.UpdateOrderAsync(body);
+            
+            var result = await _workshopServiceClient.UpdateOrderAsync(new UpdateOrderRequest {
+                AssignedMechanicId = body.AssignedMechanicId,
+                VehicleId = body.VehicleId,
+                Status = body.Status,
+                ServiceOrderId = orderId,
+            });
 
             return result.Success ? Ok(result) : BadRequest((object)result);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving order");
+            _logger.LogError(ex, "Error retrieving order ");
             return StatusCode(500, new GetOrderResponse { Success = false, Message = "Internal server error" });
         }
     }
@@ -147,7 +167,10 @@ public class OrderController(
         }
 
         try {
-            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest { Token = token });
+            var authres = await _authServiceClient.VerifyActionAsync(new VerifyActionRequest {
+                Token = token,
+                Action = "update_service_order"
+            });
             if (!authres.Allowed)
                 return Unauthorized(authres);
 

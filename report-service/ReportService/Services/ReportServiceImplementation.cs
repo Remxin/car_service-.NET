@@ -163,7 +163,7 @@ public class ReportServiceImplementation(
             .Skip((request.Page - 1) * request.PageSize)
             .Limit(request.PageSize)
             .ToListAsync();
-
+        
         foreach (var report in reports) {
             var dto = new Report {
                 Id = report.Id.ToString(),
@@ -183,6 +183,7 @@ public class ReportServiceImplementation(
                 CreatedAt = Timestamp.FromDateTime(report.CreatedAt),
                 ExpiresAt = Timestamp.FromDateTime(report.ExpiresAt),
             };
+            _logger.LogInformation("wchodzi");
 
             response.Reports.Add(dto);
         }
