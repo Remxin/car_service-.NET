@@ -18,7 +18,7 @@ public class VehiclePartController(
     private readonly ILogger<VehiclePartController> _logger = logger;
     
     [HttpPost]
-    public async Task<IActionResult> AddVehiclePart([FromBody] AddVehiclePartRequest body)
+    public async Task<IActionResult> AddVehiclePart([FromBody] AddVehiclePartRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token))
@@ -31,7 +31,13 @@ public class VehiclePartController(
                 Action = "create_service_order",
             });
             if (!authres.Allowed) return Unauthorized(authres);
-            var response = await _workshopServiceClient.AddVehiclePartAsync(body);
+            var response = await _workshopServiceClient.AddVehiclePartAsync(new AddVehiclePartRequest {
+                AvailableQuantity = body.AvailableQuantity,
+                Description = body.Description,
+                Name = body.Name,
+                PartNumber = body.PartNumber,
+                Price = body.Price,
+            });
 
             return response.Success ? Ok(response) : BadRequest((object)response);
         }
@@ -104,8 +110,8 @@ public class VehiclePartController(
         }
     }
     
-    [HttpPatch]
-    public async Task<IActionResult> DeletePart([FromBody] DeleteVehiclePartRequest body)
+    [HttpPatch("{partId:int}")]
+    public async Task<IActionResult> UpdatePart(int partId, [FromBody] UpdateVehiclePartRequestBody body)
     {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token)) {
@@ -121,9 +127,15 @@ public class VehiclePartController(
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
-            var result = await _workshopServiceClient.DeleteVehiclePartAsync(body);
+            var result = await _workshopServiceClient.UpdateVehiclePartAsync(new UpdateVehiclePartRequest {
+                AvailableQuantity = body.AvailableQuantity,
+                VehiclePartId = partId,
+                Description = body.Description,
+                Name = body.Name,
+                Price = body.Price
+            } );
 
-            return result.Success ? Ok(result) : BadRequest((object)result);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
         catch (Exception ex)
         {
