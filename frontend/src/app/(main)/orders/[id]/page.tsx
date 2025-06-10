@@ -1,45 +1,32 @@
 'use client';
 
 import { useState } from 'react';
+import { useGetOrderByIdQuery } from '@/store/api/ordersApi';
+import { useParams } from 'next/navigation';
 import { OrderDetailsHeader } from '@/components/Order/OrderDetailsHeader';
 import { OrderDetailsSection } from '@/components/Order/OrderDetailsSection';
 import { PartItem } from '@/components/Order/PartItem';
 import { TaskItem } from '@/components/Order/TaskItem';
 import { CommentItem } from '@/components/Order/CommentItem';
-
-const MOCK_ORDER = {
-	id: 'ORD-001',
-	createdAt: '2025-06-01',
-	status: 'in_progress',
-	mechanic: 'Jan Kowalski',
-	vehicle: {
-		brand: 'BMW',
-		model: 'X5',
-		year: 2020,
-		vin: 'WBAXX11060DT12345',
-		photoUrl: '/images/bmw.jpg',
-	},
-	tasks: [
-		{ id: 1, description: 'Wymiana oleju', laborCost: 100 },
-		{ id: 2, description: 'Sprawdzenie hamulców', laborCost: 50 },
-	],
-	parts: [
-		{ id: 1, name: 'Filtr oleju', quantity: 1 },
-		{ id: 2, name: 'Klocki hamulcowe', quantity: 2 },
-	],
-	comments: [
-		{ id: 1, author: 'Anna', content: 'Klient prosił o szybszy termin' },
-		{ id: 2, author: 'Mechanik', content: 'Części dostarczone' },
-	],
-};
+import Loader from '@/components/Loader';
 
 export default function OrderDetailsPage() {
-	const [comments, setComments] = useState(MOCK_ORDER.comments);
+	const { id } = useParams();
+	const { data: order, isLoading, error } = useGetOrderByIdQuery(Number(id));
+	const [comments, setComments] = useState(order?.comments || []);
 	const [showInput, setShowInput] = useState(false);
 	const [newComment, setNewComment] = useState('');
 
+	if (isLoading) {
+		return <Loader />;
+	}
+
+	if (error || !order) {
+		return <div>Error loading order details.</div>;
+	}
+
 	const handleGenerateReport = () => {
-		alert(`Generowanie raportu dla: ${MOCK_ORDER.id}`);
+		alert(`Generating report for: ${order.id}`);
 	};
 
 	const handleAddComment = () => {
@@ -58,21 +45,21 @@ export default function OrderDetailsPage() {
 
 	return (
 		<div className="p-6 space-y-6">
-			<OrderDetailsHeader order={MOCK_ORDER} />
+			<OrderDetailsHeader order={order} />
 
-			<OrderDetailsSection title="🔧 Zadania serwisowe">
-				{MOCK_ORDER.tasks.map((task) => (
+			<OrderDetailsSection title="🔧 Service Tasks">
+				{order.tasks.map((task) => (
 					<TaskItem key={task.id} {...task} />
 				))}
 			</OrderDetailsSection>
 
-			<OrderDetailsSection title="⚙️ Użyte części">
-				{MOCK_ORDER.parts.map((part) => (
+			<OrderDetailsSection title="⚙️ Used Parts">
+				{order.parts.map((part) => (
 					<PartItem key={part.id} {...part} />
 				))}
 			</OrderDetailsSection>
 
-			<OrderDetailsSection title="💬 Komentarze">
+			<OrderDetailsSection title="💬 Comments">
 				{comments.map((comment) => (
 					<CommentItem key={comment.id} {...comment} />
 				))}
@@ -81,7 +68,7 @@ export default function OrderDetailsPage() {
 					<div className="mt-4 space-y-2">
 						<input
 							type="text"
-							placeholder="Wpisz komentarz..."
+							placeholder="Enter a comment..."
 							value={newComment}
 							onChange={(e) => setNewComment(e.target.value)}
 							className="w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm"

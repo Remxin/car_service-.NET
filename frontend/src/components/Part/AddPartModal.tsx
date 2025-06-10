@@ -3,14 +3,29 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useCreateVehiclePartMutation } from '@/store/api/vehiclePartsApi';
+
+interface FormData {
+	name: string;
+	partNumber: string;
+	description: string;
+	price: number;
+	availableQuantity: number;
+}
 
 const AddPartModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-	const { register, handleSubmit, reset } = useForm();
+	const { register, handleSubmit, reset } = useForm<FormData>();
+	const [createVehiclePart, { isLoading, isError, isSuccess }] = useCreateVehiclePartMutation();
 
-	const onSubmit = (data: any) => {
-		console.log('Part added:', data);
-		reset();
-		onClose();
+	const onSubmit = async (data: FormData) => {
+		try {
+			console.log('Submitting data:', data);
+			await createVehiclePart(data).unwrap();
+			reset();
+			onClose();
+		} catch (error) {
+			console.error('Error adding part:', error);
+		}
 	};
 
 	return (
@@ -26,20 +41,68 @@ const AddPartModal = ({ open, onClose }: { open: boolean; onClose: () => void })
 					</div>
 
 					<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-						<input {...register('name')} placeholder="Nazwa" className="input" />
-						<input {...register('partNumber')} placeholder="Numer katalogowy" className="input" />
-						<input {...register('description')} placeholder="Opis" className="input" />
-						<input type="number" {...register('price')} placeholder="Cena" className="input" />
-						<input type="number" {...register('quantity')} placeholder="Ilość dostępna" className="input" />
+						<div className="flex flex-col">
+							<label htmlFor="name" className="text-sm font-medium text-zinc-700 mb-1">Nazwa</label>
+							<input
+								{...register('name', { required: true })}
+								id="name"
+								className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
+							/>
+						</div>
 
-						<button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 w-full">
-							Dodaj część
+						<div className="flex flex-col">
+							<label htmlFor="partNumber" className="text-sm font-medium text-zinc-700 mb-1">Numer katalogowy</label>
+							<input
+								{...register('partNumber', { required: true })}
+								id="partNumber"
+								className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
+							/>
+						</div>
+
+						<div className="flex flex-col">
+							<label htmlFor="description" className="text-sm font-medium text-zinc-700 mb-1">Opis</label>
+							<textarea
+								{...register('description')}
+								id="description"
+								className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
+							/>
+						</div>
+
+						<div className="flex flex-col">
+							<label htmlFor="price" className="text-sm font-medium text-zinc-700 mb-1">Cena</label>
+							<input
+								type="number"
+								{...register('price', { required: true, valueAsNumber: true })}
+								id="price"
+								className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
+							/>
+						</div>
+
+						<div className="flex flex-col">
+							<label htmlFor="availableQuantity" className="text-sm font-medium text-zinc-700 mb-1">Ilość dostępna</label>
+							<input
+								type="number"
+								{...register('availableQuantity', { required: true, valueAsNumber: true })}
+								id="availableQuantity"
+								className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
+							/>
+						</div>
+
+						<button
+							type="submit"
+							disabled={isLoading}
+							className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 w-full"
+						>
+							{isLoading ? 'Dodawanie...' : 'Dodaj część'}
 						</button>
 					</form>
+
+					{isError && <p className="text-red-500 text-sm">Błąd podczas dodawania części.</p>}
+					{isSuccess && <p className="text-green-500 text-sm">Część została dodana pomyślnie!</p>}
 				</Dialog.Content>
 			</Dialog.Portal>
 		</Dialog.Root>
 	);
-}
+};
 
 export default AddPartModal;

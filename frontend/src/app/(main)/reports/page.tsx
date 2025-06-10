@@ -27,7 +27,7 @@ export default function ReportsPage() {
 	return (
 		<AuthGuard allowedRoles={['admin']}>
 		<div className="p-2">
-			<h1 className="text-4xl font-bold text-zinc-800 mb-6">Raporty</h1>
+			<h1 className="text-4xl font-bold text-zinc-800 mb-6">Reports</h1>
 			<div className="space-y-4">
 				{MOCK_REPORTS.map((report) => (
 					<ReportCard key={report.id} {...report} />

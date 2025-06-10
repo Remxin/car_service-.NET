@@ -4,8 +4,8 @@ import { CheckCircle, XCircle, Timer } from 'lucide-react';
 import Link from 'next/link';
 
 interface OrderCardProps {
-	id: string;
-	status: 'new' | 'in_progress' | 'completed' | 'canceled';
+	id: number;
+	status: string;
 	vehicle: {
 		brand: string;
 		model: string;
