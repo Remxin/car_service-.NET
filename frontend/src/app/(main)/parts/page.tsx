@@ -7,14 +7,24 @@ import AddPartModal from '@/components/Part/AddPartModal';
 import AuthGuard from '@/components/AuthGuard';
 import { useGetVehiclePartsQuery } from '@/store/api/vehiclePartsApi';
 import Loader from "@/components/Loader";
+import { useDeleteVehiclePartMutation } from '@/store/api/vehiclePartsApi';
 
 export default function PartsPage() {
 	const [open, setOpen] = useState(false);
 	const { data: parts, isLoading, error } = useGetVehiclePartsQuery({});
+	const [deletePart] = useDeleteVehiclePartMutation();
 
 	const handleAddClick = () => {
 		setOpen(true);
 	};
+
+	const handleDeletePart = async (partId: number) => {
+			try {
+				await deletePart(partId).unwrap();
+			} catch (err) {
+				console.error('Failed to delete part:', err);
+			}
+	}
 
 	if (isLoading) {
 		return <Loader/>;
@@ -33,7 +43,7 @@ export default function PartsPage() {
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
 					{parts?.map((part) => (
-						<PartCard key={part.id} {...part} />
+						<PartCard key={part.id} {...part} onDelete={handleDeletePart}/>
 					))}
 				</div>
 

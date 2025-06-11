@@ -7,11 +7,24 @@ import { AddVehicleModal } from '@/components/Vehicle/AddVehicleModal';
 import AuthGuard from '@/components/AuthGuard';
 import { useGetVehiclesQuery } from '@/store/api/vehiclesApi';
 import Loader from "@/components/Loader";
+import { useDeleteVehicleMutation } from '@/store/api/vehiclesApi';
 
 
 export default function VehiclesPage() {
 	const [open, setOpen] = useState(false);
 	const { data: vehicles = [], isLoading, isError } = useGetVehiclesQuery({});
+	const [deleteVehicle] = useDeleteVehicleMutation();
+
+	const handleDelete = async (vehicleId: number) => {
+		try {
+			await deleteVehicle(vehicleId).unwrap();
+			console.log(`Vehicle with ID ${vehicleId} deleted successfully.`);
+		} catch (error) {
+			console.error('Failed to delete vehicle:', error);
+		}
+	}
+
+	console.log("Vehicles data:", vehicles);
 
 	if (isLoading) {
 		return <Loader/>;
@@ -36,7 +49,11 @@ export default function VehiclesPage() {
 				{isError && <p className="text-red-500">Error loading vehicles.</p>}
 				<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
 					{vehicles.map((vehicle) => (
-						<VehicleCard key={vehicle.id} {...vehicle} />
+						<VehicleCard
+							key={vehicle.id}
+							{...vehicle}
+							onDelete={handleDelete}
+						/>
 					))}
 				</div>
 				<AddVehicleModal open={open} onClose={() => setOpen(false)} />

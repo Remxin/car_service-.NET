@@ -29,22 +29,22 @@ const OrderCard = ({
 						  }: OrderCardProps) => {
 	const statusInfo = {
 		new: {
-			label: 'Nowe',
+			label: 'New',
 			icon: <Timer className="w-4 h-4" />,
 			color: 'bg-orange-100 text-orange-800',
 		},
 		in_progress: {
-			label: 'W trakcie',
+			label: 'In progress',
 			icon: <Timer className="w-4 h-4 animate-pulse" />,
 			color: 'bg-amber-100 text-amber-800',
 		},
 		completed: {
-			label: 'Zakończone',
+			label: 'Ended',
 			icon: <CheckCircle className="w-4 h-4" />,
 			color: 'bg-emerald-100 text-emerald-800',
 		},
 		canceled: {
-			label: 'Anulowane',
+			label: 'Canceled',
 			icon: <XCircle className="w-4 h-4" />,
 			color: 'bg-rose-100 text-rose-800',
 		},
@@ -71,13 +71,13 @@ const OrderCard = ({
 			</div>
 
 			<div className="text-sm text-zinc-600">
-				Mechanik: {assignedTo ? assignedTo : <em>Nieprzypisany</em>}
+				 {assignedTo ? assignedTo : <em>unassigned</em>}
 			</div>
 
 			<div className="flex justify-between text-xs text-zinc-500">
-				<span>{commentCount} komentarzy</span>
-				<span>{partCount} części</span>
-				<span>{createdAt}</span>
+				{/*<span>{commentCount} komentarzy</span>*/}
+				{/*<span>{partCount} części</span>*/}
+				{/*<span>{createdAt}</span>*/}
 			</div>
 		</div>
 			</Link>

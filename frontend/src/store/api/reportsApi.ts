@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { CreateReportRequest, SendReportEmailRequest, ReportStatusResponse } from '@/types/reports.types';
-
+import { Order, OrderQueryParams } from "@/types/orders.types";
 
 export const reportsApi = createApi({
 	reducerPath: 'reportsApi',
@@ -14,6 +14,20 @@ export const reportsApi = createApi({
 	}),
 	tagTypes: ['Reports'],
 	endpoints: (build) => ({
+		getReports: build.query<Order[], OrderQueryParams>({
+			query: (params) => ({
+				url: '?Page=1&PageSize=10',
+				method: 'GET',
+				params,
+			}),
+			transformResponse: (response: { success: boolean; message: string; serviceOrders: Order[] }) => {
+				return response.serviceOrders;
+			},
+			providesTags: (result) =>
+				result
+					? result.map((order) => ({ type: 'Reports', id: order.id }))
+					: [{ type: 'Reports', id: 'LIST' }],
+		}),
 		createReport: build.mutation<{ reportId: string }, CreateReportRequest>({
 			query: (body) => ({
 				url: '/',
@@ -46,4 +60,5 @@ export const {
 	useGetReportDownloadLinkQuery,
 	useSendReportEmailMutation,
 	useGetReportStatusQuery,
+	useGetReportsQuery,
 } = reportsApi;

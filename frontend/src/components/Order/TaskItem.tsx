@@ -1,5 +1,3 @@
-'use client';
-
 interface TaskItemProps {
 	id: number;
 	description: string;

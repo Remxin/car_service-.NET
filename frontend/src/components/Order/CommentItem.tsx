@@ -1,5 +1,3 @@
-'use client';
-
 interface CommentItemProps {
 	id: number;
 	author: string;

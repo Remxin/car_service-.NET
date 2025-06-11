@@ -16,7 +16,7 @@ export const vehiclePartsApi = createApi({
 	endpoints: (build) => ({
 		getVehicleParts: build.query<VehiclePart[], VehiclePartQueryParams>({
 			query: (params) => ({
-				url: '/',
+				url: '?Page=1&PageSize=10',
 				method: 'GET',
 				params,
 			}),

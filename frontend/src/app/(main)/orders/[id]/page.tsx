@@ -9,13 +9,28 @@ import { PartItem } from '@/components/Order/PartItem';
 import { TaskItem } from '@/components/Order/TaskItem';
 import { CommentItem } from '@/components/Order/CommentItem';
 import Loader from '@/components/Loader';
+import { useDeleteOrderMutation } from '@/store/api/ordersApi';
 
 export default function OrderDetailsPage() {
 	const { id } = useParams();
-	const { data: order, isLoading, error } = useGetOrderByIdQuery(Number(id));
-	const [comments, setComments] = useState(order?.comments || []);
+	const { data, isLoading, error } = useGetOrderByIdQuery(id);
+	const [deleteOrder] = useDeleteOrderMutation();
+	const order = data?.serviceCompleteOrder;
+
+	const [comments, setComments] = useState(order?.serviceComment || []);
 	const [showInput, setShowInput] = useState(false);
 	const [newComment, setNewComment] = useState('');
+
+	const handleDeleteOrder = async () => {
+		if (window.confirm('Are you sure you want to delete this order?')) {
+			try {
+				await deleteOrder(order?.id).unwrap();
+				window.location.href = '/orders';
+			} catch (err) {
+				console.error('Failed to delete order:', err);
+			}
+		}
+	};
 
 	if (isLoading) {
 		return <Loader />;
@@ -48,13 +63,13 @@ export default function OrderDetailsPage() {
 			<OrderDetailsHeader order={order} />
 
 			<OrderDetailsSection title="🔧 Service Tasks">
-				{order.tasks.map((task) => (
+				{order.serviceTasks.map((task) => (
 					<TaskItem key={task.id} {...task} />
 				))}
 			</OrderDetailsSection>
 
 			<OrderDetailsSection title="⚙️ Used Parts">
-				{order.parts.map((part) => (
+				{order.serviceParts.map((part) => (
 					<PartItem key={part.id} {...part} />
 				))}
 			</OrderDetailsSection>
@@ -101,12 +116,18 @@ export default function OrderDetailsPage() {
 				)}
 			</OrderDetailsSection>
 
-			<div className="pt-6 flex justify-end">
+			<div className="pt-6 flex justify-between">
 				<button
 					onClick={handleGenerateReport}
 					className="bg-orange-600 text-white px-5 py-2 rounded-lg hover:bg-orange-700 transition font-medium"
 				>
 					📄 Generate report
+				</button>
+				<button
+					onClick={handleDeleteOrder}
+					className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition font-medium"
+				>
+					🗑️ Delete Order
 				</button>
 			</div>
 		</div>
