@@ -12,11 +12,13 @@ using Shared.Grpc.Messages;
 
 namespace AuthService.Services;
 
-public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passwordService, AppDbContext dbContext, ILogger<AuthServiceImpl> logger) : Shared.Grpc.Services.AuthService.AuthServiceBase {
+public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passwordService, AppDbContext dbContext, ILogger<AuthServiceImpl> logger, EmailServiceEventPublisher emailServiceEventPublisher, ReportEventPublisher reportEventPublisher) : Shared.Grpc.Services.AuthService.AuthServiceBase {
     private readonly JwtTokenService _tokenService = tokenService;
     private readonly PasswordService _passwordService = passwordService;
     private readonly AppDbContext _dbContext = dbContext;
     private readonly ILogger<AuthServiceImpl> _logger = logger;
+    private readonly EmailServiceEventPublisher _emailServiceEventPublisher = emailServiceEventPublisher;
+    private readonly ReportEventPublisher _reportEventPublisher = reportEventPublisher;
 
     public override async Task<LoginResponse> Login(LoginRequest request, ServerCallContext context) {
         var response = new LoginResponse {
@@ -78,6 +80,18 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
             response.UserId = user.Entity.Id.ToString();
             
             _logger.LogInformation($"Created user {user.Entity.Id} : {user.Entity.Email}");
+            _reportEventPublisher.PublishEvent("workshop.service.user.created", new {
+                Id = user.Entity.Id,
+                Name = user.Entity.Name,
+                Email = user.Entity.Email,
+                CreatedAt = user.Entity.CreatedAt
+            }); 
+            _emailServiceEventPublisher.PublishEvent("email.send.welcome_email", new {
+                Receiver = new Receiver{
+                    Email = user.Entity.Email,
+                    Name = user.Entity.Name
+                }
+            });
             return response;
         }
         catch {
@@ -213,10 +227,20 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
         var userRole = new UserRoleEntity { UserId = userId, RoleId = roleId };
         _dbContext.UserRoles.Add(userRole);
         await _dbContext.SaveChangesAsync();
+        
+        var role = _dbContext.Roles.FirstOrDefault(r => r.Id == roleId);
 
         response.Success = true;
         response.Message = "Role added";
         _logger.LogInformation($"User {userId} added role {roleId}");
+        _reportEventPublisher.PublishEvent("workshop.service.user.role_added", new {
+            UserId = userId,
+            Role = new RoleEntity {
+                Name = role.Name,
+                Description = role.Description,
+                Id = role.Id,
+            }
+        });
         return response;
     }
     
@@ -248,9 +272,14 @@ public class AuthServiceImpl(JwtTokenService tokenService, PasswordService passw
         _dbContext.UserRoles.Remove(userRole);
         await _dbContext.SaveChangesAsync();
 
+        var role = _dbContext.Roles.FirstOrDefault(r => r.Id == roleId);
         response.Success = true;
         response.Message = "Role removed";
         _logger.LogInformation($"User {userId} removed role {roleId}");
+        _reportEventPublisher.PublishEvent("workshop.service.user.role_removed", new {
+            UserId = userId,
+            Role = role
+        });
         return response;
     }
 

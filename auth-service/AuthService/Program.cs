@@ -2,6 +2,7 @@ using AuthService;
 using AuthService.Data;
 using AuthService.Services;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
 using Serilog;
 
 var config = new EnvConfig();
@@ -29,9 +30,33 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(config.DbConnectionString));
+builder.Services.AddSingleton<IConnection>(sp => {
+    var factory = new ConnectionFactory {
+        HostName = config.RabbitMQHost,
+        Port = int.Parse(config.RabbitMQPort ?? "5672"),
+        UserName = config.RabbitMQUserName,
+        Password = config.RabbitMQPassword,
+        VirtualHost = config.RabbitMQVirtualHost
+    };
+    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+    var logger = loggerFactory.CreateLogger("RabbitMQConnection");
+
+    try {
+        var connection = factory.CreateConnection();
+        logger.LogInformation("✅ Connected to RabbitMQ");
+        return connection;
+    }
+    catch (Exception ex) {
+        logger.LogError(ex, "❌ RabbitMQ connection failed");
+        throw;
+    }
+});
+
 
 builder.Services.AddSingleton<JwtTokenService>(new JwtTokenService(config.JwtSecretKey));
 builder.Services.AddSingleton<PasswordService>(new PasswordService());
+builder.Services.AddSingleton<ReportEventPublisher>();
+builder.Services.AddSingleton<EmailServiceEventPublisher>();
 
 builder.Services.AddControllers();
 builder.Services.AddGrpc();

@@ -100,6 +100,7 @@ public class OrderController(
                 return Unauthorized(authres);
 
         
+            _logger.LogInformation($"Searching orders {body.PageSize} {body.Page}");
             var result = await _workshopServiceClient.SearchOrdersAsync(new SearchOrdersRequest {
                 Page = body.Page,
                 PageSize = body.PageSize,

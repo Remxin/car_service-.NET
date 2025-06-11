@@ -14,8 +14,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<RolePermissionEntity> RolePermissions => Set<RolePermissionEntity>();
 
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
+    protected override void OnModelCreating(ModelBuilder modelBuilder) {
 
         modelBuilder.Entity<RolePermissionEntity>(entity =>
         {

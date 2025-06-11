@@ -5,6 +5,8 @@ using Serilog;
 
 
 var config = new EnvConfig();
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 var builder = WebApplication.CreateBuilder(args);
 var portStr = config.FileUploadServicePort ?? "5009";
 if (!int.TryParse(portStr, out var port)) {
@@ -19,6 +21,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader() 
+                .AllowAnyMethod();
+        });
+});
 
 
 builder.Services.AddGrpcClient<Shared.Grpc.Services.AuthService.AuthServiceClient>(options => {
@@ -36,6 +48,7 @@ builder.WebHost.ConfigureKestrel(options => {
 
 var app = builder.Build();
 
+app.UseCors(MyAllowSpecificOrigins);
 app.UseSwagger();
 app.UseSwaggerUI();
 

@@ -49,10 +49,10 @@ CREATE TABLE "service_comments" (
 
 ALTER TABLE "service_orders" ADD FOREIGN KEY ("vehicle_id") REFERENCES "vehicles" ("id");
 
-ALTER TABLE "service_tasks" ADD FOREIGN KEY ("order_id") REFERENCES "service_orders" ("id");
+ALTER TABLE "service_tasks" ADD FOREIGN KEY ("order_id") REFERENCES "service_orders" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "service_parts" ADD FOREIGN KEY ("order_id") REFERENCES "service_orders" ("id");
+ALTER TABLE "service_parts" ADD FOREIGN KEY ("order_id") REFERENCES "service_orders" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "service_parts" ADD FOREIGN KEY ("vehicle_part_id") REFERENCES "vehicle_parts" ("id");
+ALTER TABLE "service_parts" ADD FOREIGN KEY ("vehicle_part_id") REFERENCES "vehicle_parts" ("id") ON DELETE SET NULL;
 
-ALTER TABLE "service_comments" ADD FOREIGN KEY ("order_id") REFERENCES "service_orders" ("id");
+ALTER TABLE "service_comments" ADD FOREIGN KEY ("order_id") REFERENCES "service_orders" ("id") ON DELETE CASCADE;
