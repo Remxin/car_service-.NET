@@ -52,7 +52,12 @@ public class WorkshopServiceEventSubscriber : BackgroundService
                     return;
                 }
 
-                var order = await dbContext.ServiceOrders.FindAsync(orderMessage.OrderId);
+                if (!int.TryParse(orderMessage.OrderId, out int orderId)) {
+                    _logger.LogWarning("Failed to deserialize order message");
+                    return;
+                }
+
+                var order = await dbContext.ServiceOrders.FindAsync(orderId);
                 if (order == null)
                 {
                     _logger.LogWarning("Order with ID {OrderId} not found", orderMessage.OrderId);

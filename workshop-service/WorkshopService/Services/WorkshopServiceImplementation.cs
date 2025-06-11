@@ -36,6 +36,10 @@ public class WorkshopServiceImplementation(
         };
 
         try {
+            if (request.AssignedMechanicId == 1) {
+                response.Message = "cannot assign orders to root user (id: 1)";
+                return response;
+            }
 
             var order = new ServiceOrderEntity
             {
@@ -48,6 +52,7 @@ public class WorkshopServiceImplementation(
             await _dbContext.SaveChangesAsync();
             await _dbContext.Entry(order).Reference(o => o.Vehicle).LoadAsync();
 
+            var vehicle = await _dbContext.Vehicles.FindAsync(order.VehicleId);
             _logger.LogInformation("ServiceOrder created with Id={OrderId}",
                 createdOrder.Entity.Id);
 
@@ -56,7 +61,15 @@ public class WorkshopServiceImplementation(
             response.ServiceOrder = createdOrder.Entity.ToProto();
             _eventPublisher.PublishEvent("workshop.service.order.created", new {
                 Id = order.Id,
-                Vehicle = order.Vehicle,
+                Vehicle = new {
+                    Id = vehicle?.Id,
+                    Brand = vehicle?.Brand,
+                    Model = vehicle?.Model,
+                    Year = vehicle?.Year,
+                    Vin = vehicle?.Vin,
+                    PhotoUrl = vehicle?.PhotoUrl,
+                    CreateAt = vehicle?.CreatedAt
+                },
                 Status = order.Status,
                 UserId = order.AssignedMechanicId,
                 CreatedAt = order.CreatedAt,
@@ -197,7 +210,14 @@ public class WorkshopServiceImplementation(
             _eventPublisher.PublishEvent("workshop.service.part.added", new {
                 Id = created.Entity.Id,
                 OrderId = created.Entity.OrderId,
-                VehiclePart = vehiclePart,
+                VehiclePart = new {
+                    Id = vehiclePart?.Id,
+                    Name = vehiclePart?.Name,
+                    PartNumber = vehiclePart?.PartNumber,
+                    Description = vehiclePart?.Description,
+                    Price = vehiclePart?.Price,
+                    AvailableQuantity = vehiclePart?.AvailableQuantity,
+                },
                 Quantity = created.Entity.Quantity,
             });
         }
