@@ -30,9 +30,9 @@ export function OrderDetailsHeader({ order }: OrderDetailsHeaderProps) {
 	return (
 		<div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col sm:flex-row gap-6 shadow-sm">
 			<img
-				src={order.vehicle.photoUrl || DEFAULT_IMAGE_URL}
+				src={order.vehicle.photoUrl ? "http://localhost:5009/v1/car-image/"+order.vehicle.photoUrl : DEFAULT_IMAGE_URL}
 				alt="Vehicle"
-				className="w-full sm:w-48 h-32 object-cover rounded-lg"
+				className="w-full sm:w-48 h-32 object-contain rounded-lg"
 			/>
 			<div className="flex-1 space-y-2">
 				<div className="flex justify-between items-center">

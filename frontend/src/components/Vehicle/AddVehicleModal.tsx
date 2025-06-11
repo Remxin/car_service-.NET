@@ -43,7 +43,7 @@ export function AddVehicleModal({
 			// Retrieve the token from localStorage
 			const token = localStorage.getItem('token');
 
-			const response = await fetch('http://localhost:5009/v1/car-images/uploads', {
+			const response = await fetch('http://localhost:5009/v1/car-image/upload', {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${ token }`, // Add the Bearer token here
@@ -56,7 +56,8 @@ export function AddVehicleModal({
 			}
 
 			const data = await response.json();
-			setValue('carImageUrl', data.url || DEFAULT_IMAGE_URL);
+			console.log('Image uploaded successfully:', data.fileName);
+			setValue('carImageUrl', data.fileName || DEFAULT_IMAGE_URL);
 		} catch (err) {
 			console.error('Error uploading image:', err);
 			setValue('carImageUrl', DEFAULT_IMAGE_URL);

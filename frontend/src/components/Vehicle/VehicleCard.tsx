@@ -6,18 +6,19 @@ interface VehicleCardProps {
 	model: string;
 	year: number;
 	vin: string;
-	carImageUrl: string;
+	photoUrl: string;
 	onDelete: (vehicleId: number) => void;
 }
 
 const DEFAULT_IMAGE_URL = 'https://png.pngtree.com/png-vector/20230206/ourmid/pngtree-orange-car-vector-mockup-png-image_6587139.png';
 
 
-export function VehicleCard({ id, brand, model, year, vin, carImageUrl, onDelete }: VehicleCardProps) {
+export function VehicleCard({ id, brand, model, year, vin, photoUrl, onDelete }: VehicleCardProps) {
 	return (
 		<div className="bg-white  shadow-lg border border-zinc-200 rounded-xl overflow-hidden">
+			<span>{id}</span>
 			<img
-				src={carImageUrl || DEFAULT_IMAGE_URL}
+				src={photoUrl ? "http://localhost:5009/v1/car-image/"+photoUrl : DEFAULT_IMAGE_URL}
 				alt={`${brand} ${model}`}
 				className="w-full h-40 object-contain"
 			/>
