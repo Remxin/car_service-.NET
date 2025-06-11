@@ -2,17 +2,15 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 interface CreateServicePartRequest {
 	orderId: number;
-	name: string;
+	vehiclePartId: number;
 	quantity: number;
-	price: number;
 }
 
 interface UpdateServicePartRequest {
 	servicePartId: number;
 	orderId: number;
-	name: string;
+	vehiclePartId: number;
 	quantity: number;
-	price: number;
 }
 
 export const servicePartApi = createApi({

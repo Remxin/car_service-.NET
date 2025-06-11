@@ -1,30 +1,43 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetOrderByIdQuery } from '@/store/api/ordersApi';
 import { useParams } from 'next/navigation';
+import { useGetOrderByIdQuery, useDeleteOrderMutation } from '@/store/api/ordersApi';
+import { useCreateServiceTaskMutation, useDeleteServiceTaskMutation } from '@/store/api/serviceTaskApi';
+import { useCreateServicePartMutation, useDeleteServicePartMutation } from '@/store/api/servicePartApi';
+import { useCreateCommentMutation, useDeleteCommentMutation } from '@/store/api/commentsApi';
+import Loader from '@/components/Loader';
 import { OrderDetailsHeader } from '@/components/Order/OrderDetailsHeader';
 import { OrderDetailsSection } from '@/components/Order/OrderDetailsSection';
 import { PartItem } from '@/components/Order/PartItem';
 import { TaskItem } from '@/components/Order/TaskItem';
 import { CommentItem } from '@/components/Order/CommentItem';
-import Loader from '@/components/Loader';
-import { useDeleteOrderMutation } from '@/store/api/ordersApi';
 
 export default function OrderDetailsPage() {
 	const { id } = useParams();
-	const { data, isLoading, error } = useGetOrderByIdQuery(id);
+	const orderId = Number(id);
+	const { data, isLoading, error, refetch } = useGetOrderByIdQuery(orderId);
 	const [deleteOrder] = useDeleteOrderMutation();
+	const [createTask] = useCreateServiceTaskMutation();
+	const [deleteTask] = useDeleteServiceTaskMutation();
+	const [createPart] = useCreateServicePartMutation();
+	const [deletePart] = useDeleteServicePartMutation();
+	const [createComment] = useCreateCommentMutation();
+	const [deleteComment] = useDeleteCommentMutation();
+
 	const order = data?.serviceCompleteOrder;
 
-	const [comments, setComments] = useState(order?.serviceComment || []);
-	const [showInput, setShowInput] = useState(false);
+	const [newTaskDesc, setNewTaskDesc] = useState('');
+	const [newTaskCost, setNewTaskCost] = useState('');
+	const [newVehiclePartId, setNewVehiclePartId] = useState('');
+	const [newPartQty, setNewPartQty] = useState('');
 	const [newComment, setNewComment] = useState('');
+	const [showCommentInput, setShowCommentInput] = useState(false);
 
 	const handleDeleteOrder = async () => {
 		if (window.confirm('Are you sure you want to delete this order?')) {
 			try {
-				await deleteOrder(order?.id).unwrap();
+				await deleteOrder(order.id).unwrap();
 				window.location.href = '/orders';
 			} catch (err) {
 				console.error('Failed to delete order:', err);
@@ -32,10 +45,61 @@ export default function OrderDetailsPage() {
 		}
 	};
 
+	const handleAddTask = async () => {
+		if (!newTaskDesc.trim()) return;
+		await createTask({
+			orderId,
+			description: newTaskDesc,
+			laborCost: parseFloat(newTaskCost) || 0,
+		});
+		setNewTaskDesc('');
+		setNewTaskCost('');
+		refetch();
+	};
+
+	const handleRemoveTask = async (taskId: number) => {
+		await deleteTask(taskId);
+		refetch();
+	};
+
+	const handleAddPart = async () => {
+		if (!newVehiclePartId.trim()) return;
+		await createPart({
+			orderId,
+			vehiclePartId: parseInt(newVehiclePartId),
+			quantity: parseInt(newPartQty) || 1,
+		});
+		setNewVehiclePartId('');
+		setNewPartQty('');
+		refetch();
+	};
+
+	const handleRemovePart = async (partId: number) => {
+		await deletePart(partId);
+		refetch();
+	};
+
+	const handleAddComment = async () => {
+		if (!newComment.trim()) return;
+		await createComment({
+			orderId,
+			content: newComment,
+		});
+		setNewComment('');
+		setShowCommentInput(false);
+		refetch();
+	};
+
+	const handleRemoveComment = async (commentId: number) => {
+		await deleteComment(commentId);
+		refetch();
+	};
+
+
+
 	if (isLoading) {
 		return <Loader />;
 	}
-
 	if (error || !order) {
 		return <div>Error loading order details.</div>;
 	}
@@ -44,42 +108,96 @@ export default function OrderDetailsPage() {
 		alert(`Generating report for: ${order.id}`);
 	};
 
-	const handleAddComment = () => {
-		if (!newComment.trim()) return;
-
-		const nextComment = {
-			id: Date.now(),
-			author: 'You',
-			content: newComment,
-		};
-
-		setComments((prev) => [...prev, nextComment]);
-		setNewComment('');
-		setShowInput(false);
-	};
-
 	return (
 		<div className="p-6 space-y-6">
 			<OrderDetailsHeader order={order} />
 
 			<OrderDetailsSection title="🔧 Service Tasks">
 				{order.serviceTasks.map((task) => (
-					<TaskItem key={task.id} {...task} />
+					<div key={task.id} className="flex justify-between items-center">
+						<TaskItem {...task} />
+						<button
+							onClick={() => handleRemoveTask(task.id)}
+							className="text-red-600 text-sm hover:underline"
+						>
+							Remove
+						</button>
+					</div>
 				))}
+				<div className="mt-4 flex flex-col gap-2 w-1/2 w-100">
+					<input
+						type="text"
+						placeholder="Task description"
+						value={newTaskDesc}
+						onChange={(e) => setNewTaskDesc(e.target.value)}
+						className="border px-2 py-1 rounded"
+					/>
+					<input
+						type="number"
+						placeholder="Labor cost"
+						value={newTaskCost}
+						onChange={(e) => setNewTaskCost(e.target.value)}
+						className="border px-2 py-1 rounded w-100"
+					/>
+					<button
+						onClick={handleAddTask}
+						className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 w-30"
+					>
+						+ Task
+					</button>
+				</div>
 			</OrderDetailsSection>
 
 			<OrderDetailsSection title="⚙️ Used Parts">
 				{order.serviceParts.map((part) => (
-					<PartItem key={part.id} {...part} />
+					<div key={part.id} className="flex justify-between items-center">
+						<PartItem {...part} />
+						<button
+							onClick={() => handleRemovePart(part.id)}
+							className="text-red-600 text-sm hover:underline"
+						>
+							Remove
+						</button>
+					</div>
 				))}
+				<div className="mt-4 flex flex-col gap-2 w-1/2">
+					<input
+						type="text"
+						placeholder="Vehicle Part ID"
+						value={newVehiclePartId}
+						onChange={(e) => setNewVehiclePartId(e.target.value)}
+						className="border px-2 py-1 rounded w-100"
+					/>
+					<input
+						type="number"
+						placeholder="Quantity"
+						value={newPartQty}
+						onChange={(e) => setNewPartQty(e.target.value)}
+						className="border px-2 py-1 rounded w-100"
+					/>
+					<button
+						onClick={handleAddPart}
+						className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 w-30"
+					>
+						+ Part
+					</button>
+				</div>
 			</OrderDetailsSection>
 
+			{/* Comments */}
 			<OrderDetailsSection title="💬 Comments">
-				{comments.map((comment) => (
-					<CommentItem key={comment.id} {...comment} />
+				{order.serviceComment.map((comment) => (
+					<div key={comment.id} className="flex justify-between items-center">
+						<CommentItem {...comment} author="Unknown" />
+						<button
+							onClick={() => handleRemoveComment(comment.id)}
+							className="text-red-600 text-sm hover:underline"
+						>
+							Remove
+						</button>
+					</div>
 				))}
-
-				{showInput ? (
+				{showCommentInput ? (
 					<div className="mt-4 space-y-2">
 						<input
 							type="text"
@@ -90,14 +208,14 @@ export default function OrderDetailsPage() {
 						/>
 						<div className="flex justify-end gap-2">
 							<button
-								onClick={() => setShowInput(false)}
-								className="px-3 py-1 text-sm rounded bg-zinc-200 hover:bg-zinc-300 transition"
+								onClick={() => setShowCommentInput(false)}
+								className="px-3 py-1 text-sm rounded bg-zinc-200 hover:bg-zinc-300"
 							>
 								Cancel
 							</button>
 							<button
 								onClick={handleAddComment}
-								className="px-4 py-1.5 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 transition"
+								className="px-4 py-1.5 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
 							>
 								Send
 							</button>
@@ -106,8 +224,8 @@ export default function OrderDetailsPage() {
 				) : (
 					<div className="flex justify-between items-center mt-6">
 						<button
-							onClick={() => setShowInput(true)}
-							className="inline-flex items-center gap-1 bg-orange-600 text-white text-sm px-3 py-1.5 rounded-md hover:bg-orange-700 transition"
+							onClick={() => setShowCommentInput(true)}
+							className="inline-flex items-center gap-1 bg-orange-600 text-white text-sm px-3 py-1.5 rounded hover:bg-orange-700"
 						>
 							<span className="text-lg leading-none">+</span>
 							Add comment
@@ -116,16 +234,17 @@ export default function OrderDetailsPage() {
 				)}
 			</OrderDetailsSection>
 
+			{/* Bottom actions */}
 			<div className="pt-6 flex justify-between">
 				<button
 					onClick={handleGenerateReport}
-					className="bg-orange-600 text-white px-5 py-2 rounded-lg hover:bg-orange-700 transition font-medium"
+					className="bg-orange-600 text-white px-5 py-2 rounded-lg hover:bg-orange-700"
 				>
 					📄 Generate report
 				</button>
 				<button
 					onClick={handleDeleteOrder}
-					className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 transition font-medium"
+					className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700"
 				>
 					🗑️ Delete Order
 				</button>
