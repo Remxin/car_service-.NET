@@ -78,7 +78,7 @@ public class ReportController (
     }
     
     [HttpPost]
-    public async Task<IActionResult> GenerateReport([FromBody] GenerateReportRequest body) {
+    public async Task<IActionResult> GenerateReport([FromBody] GenerateReportRequestBody body) {
         var token = GetAccessToken();
         if (string.IsNullOrEmpty(token))
         {
@@ -94,7 +94,10 @@ public class ReportController (
             if (!authres.Allowed)
                 return Unauthorized(authres);
 
-            var result = await _reportServiceClient.GenerateReportAsync(body);
+            var result = await _reportServiceClient.GenerateReportAsync(new GenerateReportRequest {
+                UserId = body.UserId.ToString(),
+                OrderId = body.OrderId.ToString(),
+            });
 
             return Ok(result);
         }
@@ -106,10 +109,9 @@ public class ReportController (
     }
     
     [HttpPost("send-email")]
-    public async Task<IActionResult> GetReportDownloadLink([FromBody] SendEmailWithReportRequest body) {
+    public async Task<IActionResult> GetReportDownloadLink([FromBody] SendReportEmailRequestBody body) {
         var token = GetAccessToken();
-        if (string.IsNullOrEmpty(token))
-        {
+        if (string.IsNullOrEmpty(token)) {
             _logger.LogWarning("Authorization header missing");
             return Unauthorized(new GetReportsListResponse());
         }
@@ -121,8 +123,13 @@ public class ReportController (
             });
             if (!authres.Allowed)
                 return Unauthorized(authres);
+            
+            var userIdsStr = body.UsersIds.Select(u => u.ToString()).ToList();
 
-            var result = await _reportServiceClient.SendEmailWithReportAsync(body);
+            var result = await _reportServiceClient.SendEmailWithReportAsync(new SendEmailWithReportRequest {
+                UsersIds = { userIdsStr },
+                ReportId = body.ReportId.ToString(),
+            });
 
             return Ok(result);
         }
