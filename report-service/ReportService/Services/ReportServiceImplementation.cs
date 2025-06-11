@@ -78,7 +78,13 @@ public class ReportServiceImplementation(
         await using var fileStream = File.OpenRead(reportFilePath);
         string uploadedPath =
             await _blobStorageService.UploadImageAsync(fileStream, Path.GetFileName(reportFilePath), "application/pdf");
-        
+
+        if (!string.IsNullOrEmpty(report.ReportUrl) && report.Status == "GENERATED") {
+            var blobName = new Uri(report.ReportUrl).Segments.Last();
+            _logger.LogInformation($"🗑 Deleting expired report blob: {blobName}");
+
+            await _blobStorageService.DeleteImageAsync(blobName);
+        }
         report.ReportUrl = uploadedPath;
         report.ExpiresAt = DateTime.UtcNow.AddDays(8);
         report.Status = "GENERATED";
@@ -92,6 +98,7 @@ public class ReportServiceImplementation(
         await _mongoDbContext.Reports.UpdateOneAsync(filter, update);
         
         try {
+            _logger.LogInformation($"report path: {reportFilePath}");
             File.Delete(reportFilePath);
         }
         catch (Exception ex) {
@@ -109,6 +116,11 @@ public class ReportServiceImplementation(
             Message = "Unknown error",
             Success = false,
         };
+
+        if (request.UsersIds.Contains("1")) {
+            response.Message = "Email cannot be sendt to root user";
+            return response;
+        }
 
         var report = await _mongoDbContext.Reports.Find(r => r.OrderId == int.Parse(request.ReportId))
             .FirstOrDefaultAsync();
@@ -183,7 +195,6 @@ public class ReportServiceImplementation(
                 CreatedAt = Timestamp.FromDateTime(report.CreatedAt),
                 ExpiresAt = Timestamp.FromDateTime(report.ExpiresAt),
             };
-            _logger.LogInformation("wchodzi");
 
             response.Reports.Add(dto);
         }

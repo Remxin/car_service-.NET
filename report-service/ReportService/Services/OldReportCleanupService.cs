@@ -40,7 +40,7 @@ public class OldReportCleanupService(
         }
     }
     private static string GetBlobNameFromUrl(string url) {
-        return new Uri(url).Segments.Last(); // np. "myfile.pdf"
+        return new Uri(url).Segments.Last();
     }
 
     private async Task CleanupOldFilesAsync() {
