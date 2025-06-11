@@ -21,8 +21,10 @@ const PartCard = ({
 				  }: PartCardProps) => {
 	return (
 		<div className="bg-white shadow-lg border border-zinc-200 rounded-xl p-5 flex flex-col gap-4">
-			<div className="text-sm text-zinc-400">ID: { id }</div>
-			<h2 className="text-lg font-semibold text-zinc-800">{ name }</h2>
+			<div className="flex justify-between items-center">
+				<h2 className="text-lg font-semibold text-zinc-800">{ name }</h2>
+				<div className="text-sm text-zinc-400">ID: { id }</div>
+			</div>
 			<p className="text-sm text-zinc-500">{ partNumber }</p>
 			<p className="text-sm text-zinc-600">{ description }</p>
 

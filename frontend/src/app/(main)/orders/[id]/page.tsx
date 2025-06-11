@@ -57,6 +57,7 @@ export default function OrderDetailsPage() {
 		refetch();
 	};
 
+
 	const handleRemoveTask = async (taskId: number) => {
 		await deleteTask(taskId);
 		refetch();
@@ -107,6 +108,8 @@ export default function OrderDetailsPage() {
 	const handleGenerateReport = () => {
 		alert(`Generating report for: ${order.id}`);
 	};
+
+	console.log('komenatrze', order.serviceComment);
 
 	return (
 		<div className="p-6 space-y-6">
@@ -188,13 +191,8 @@ export default function OrderDetailsPage() {
 			<OrderDetailsSection title="💬 Comments">
 				{order.serviceComment.map((comment) => (
 					<div key={comment.id} className="flex justify-between items-center">
-						<CommentItem {...comment} author="Unknown" />
-						<button
-							onClick={() => handleRemoveComment(comment.id)}
-							className="text-red-600 text-sm hover:underline"
-						>
-							Remove
-						</button>
+						<CommentItem {...comment} author="" />
+
 					</div>
 				))}
 				{showCommentInput ? (

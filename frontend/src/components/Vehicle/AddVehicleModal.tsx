@@ -16,6 +16,8 @@ export function AddVehicleModal({
 }) {
 	const DEFAULT_IMAGE_URL = 'https://png.pngtree.com/png-vector/20230206/ourmid/pngtree-orange-car-vector-mockup-png-image_6587139.png';
 
+
+
 	const { register, handleSubmit, reset, setValue, getValues } =
 		useForm<CreateVehicleRequest>({
 			defaultValues: {
@@ -38,27 +40,30 @@ export function AddVehicleModal({
 			const formData = new FormData();
 			formData.append('file', file);
 
-			const response = await fetch('http://localhost:5010/v1/uploads', {
+			// Retrieve the token from localStorage
+			const token = localStorage.getItem('token');
+
+			const response = await fetch('http://localhost:5009/v1/car-images/uploads', {
 				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${ token }`, // Add the Bearer token here
+				},
 				body: formData,
 			});
 
 			if (!response.ok) {
-				throw new Error(`Upload failed: ${response.status}`);
+				throw new Error(`Upload failed: ${ response.status }`);
 			}
 
 			const data = await response.json();
-			setValue(
-				'carImageUrl',
-				data.url || DEFAULT_IMAGE_URL
-			);
+			setValue('carImageUrl', data.url || DEFAULT_IMAGE_URL);
 		} catch (err) {
 			console.error('Error uploading image:', err);
 			setValue('carImageUrl', DEFAULT_IMAGE_URL);
 		} finally {
 			setUploading(false);
 		}
-	};
+	}
 
 	const onSubmit = async (data: CreateVehicleRequest) => {
 		if (!data.carImageUrl || data.carImageUrl === '') {
