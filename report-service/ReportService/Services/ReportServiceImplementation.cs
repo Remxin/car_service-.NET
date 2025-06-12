@@ -178,7 +178,7 @@ public class ReportServiceImplementation(
         
         foreach (var report in reports) {
             var dto = new Report {
-                Id = report.Id.ToString(),
+                Id = report.OrderId.ToString(),
                 Vehicle = new Vehicle {
                     Id = report.VehicleId,
                     Model = report.Vehicle.Model,
