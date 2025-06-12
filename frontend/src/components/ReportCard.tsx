@@ -70,30 +70,23 @@ export function ReportCard({ id, vehicle, mechanic, status, createdAt }: Props) 
         </span>
 				{status === 'GENERATED' && (
 					<>
-						<button
-							onClick={handleDownload}
-							className="p-1 text-orange-600 hover:text-orange-700 hover: cursor-pointer"
-							title="Download report"
+						<a
+							href={ downloadData?.downloadUrl }
+							onClick={ handleDownload }
+							className="flex items-center gap-1 text-sm text-orange-600 underline hover:text-orange-700"
+							download
 						>
-							<Download className="w-4 h-4" />
-						</button>
-						{downloadData && (
-							<a
-								href={downloadData.downloadUrl}
-								className="text-sm text-orange-600 underline hover:text-orange-700 hover: cursor-pointer"
-								download
-							>
-								Pobierz
-							</a>
-						)}
+							<Download className="w-4 h-4"/>
+							Pobierz
+						</a>
 						<button
-							onClick={handleSendEmail}
+							onClick={ handleSendEmail }
 							className="text-sm text-orange-600 underline hover:text-orange-700 hover: cursor-pointer"
 						>
 							Send Email
 						</button>
 					</>
-				)}
+				) }
 			</div>
 		</div>
 	);
