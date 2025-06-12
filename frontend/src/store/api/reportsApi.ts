@@ -1,64 +1,66 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { CreateReportRequest, SendReportEmailRequest, ReportStatusResponse } from '@/types/reports.types';
-import { Order, OrderQueryParams } from "@/types/orders.types";
+import {
+	Report,
+	ListReportsResponse,
+	CreateReportRequest,
+	ReportDownloadLinkResponse,
+	SendReportEmailRequest
+} from "@/types/reports.types";
 
 export const reportsApi = createApi({
 	reducerPath: 'reportsApi',
 	baseQuery: fetchBaseQuery({
 		baseUrl: 'http://localhost:5010/v1/reports',
 		prepareHeaders: (headers, { getState }) => {
-			const token = (getState() as any).auth.token;
+			const token = (getState() as any).auth?.token;
 			if (token) headers.set('Authorization', `Bearer ${token}`);
 			return headers;
 		},
 	}),
 	tagTypes: ['Reports'],
 	endpoints: (build) => ({
-		getReports: build.query<Order[], OrderQueryParams>({
-			query: (params) => ({
-				url: '?Page=1&PageSize=10',
-				method: 'GET',
-				params,
-			}),
-			transformResponse: (response: { success: boolean; message: string; serviceOrders: Order[] }) => {
-				return response.serviceOrders;
-			},
+		getReports: build.query<Report[], void>({
+			query: () => '?Page=1&PageSize=10',
+			transformResponse: (response: ListReportsResponse) => response.reports,
 			providesTags: (result) =>
 				result
-					? result.map((order) => ({ type: 'Reports', id: order.id }))
+					? [
+						...result.map((report) => ({ type: 'Reports' as const, id: report.id })),
+						{ type: 'Reports', id: 'LIST' },
+					]
 					: [{ type: 'Reports', id: 'LIST' }],
 		}),
 		createReport: build.mutation<{ reportId: string }, CreateReportRequest>({
 			query: (body) => ({
-				url: '/',
+				url: '',
 				method: 'POST',
 				body,
 			}),
 			invalidatesTags: ['Reports'],
 		}),
-		getReportDownloadLink: build.query<string, string>({
-			query: (reportId) => `/download-link/${reportId}`,
+		getReportDownloadLink: build.query<ReportDownloadLinkResponse, string>({
+			query: (reportId) => `download-link/${reportId}`,
 			providesTags: (result, error, id) => [{ type: 'Reports', id }],
 		}),
 		sendReportEmail: build.mutation<{ success: boolean; message: string }, SendReportEmailRequest>({
 			query: (body) => ({
-				url: '/send-email',
+				url: 'send-email',
 				method: 'POST',
 				body,
 			}),
 			invalidatesTags: ['Reports'],
 		}),
-		getReportStatus: build.query<ReportStatusResponse, string>({
-			query: (reportId) => `/${reportId}/status`,
+		getReportStatus: build.query<{ status: string; progress: number }, string>({
+			query: (reportId) => `${reportId}/status`,
 			providesTags: (result, error, id) => [{ type: 'Reports', id }],
 		}),
 	}),
 });
 
 export const {
+	useGetReportsQuery,
 	useCreateReportMutation,
 	useGetReportDownloadLinkQuery,
 	useSendReportEmailMutation,
 	useGetReportStatusQuery,
-	useGetReportsQuery,
-} = reportsApi;
+} = reportsApi

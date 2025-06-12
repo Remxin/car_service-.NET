@@ -14,7 +14,6 @@ export function AddVehicleModal({
 	open: boolean;
 	onClose: () => void;
 }) {
-	const DEFAULT_IMAGE_URL = 'https://png.pngtree.com/png-vector/20230206/ourmid/pngtree-orange-car-vector-mockup-png-image_6587139.png';
 
 
 
@@ -25,7 +24,7 @@ export function AddVehicleModal({
 				model: '',
 				vin: '',
 				year: undefined,
-				carImageUrl: DEFAULT_IMAGE_URL,
+				carImageUrl: "",
 			},
 		});
 
@@ -57,10 +56,10 @@ export function AddVehicleModal({
 
 			const data = await response.json();
 			console.log('Image uploaded successfully:', data.fileName);
-			setValue('carImageUrl', data.fileName || DEFAULT_IMAGE_URL);
+			setValue('carImageUrl', data.fileName);
 		} catch (err) {
 			console.error('Error uploading image:', err);
-			setValue('carImageUrl', DEFAULT_IMAGE_URL);
+			setValue('carImageUrl', "");
 		} finally {
 			setUploading(false);
 		}
@@ -68,7 +67,7 @@ export function AddVehicleModal({
 
 	const onSubmit = async (data: CreateVehicleRequest) => {
 		if (!data.carImageUrl || data.carImageUrl === '') {
-			data.carImageUrl = DEFAULT_IMAGE_URL;
+			data.carImageUrl = "";
 		}
 
 		try {

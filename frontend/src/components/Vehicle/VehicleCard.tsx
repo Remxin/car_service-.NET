@@ -14,11 +14,13 @@ const DEFAULT_IMAGE_URL = 'https://png.pngtree.com/png-vector/20230206/ourmid/pn
 
 
 export function VehicleCard({ id, brand, model, year, vin, photoUrl, onDelete }: VehicleCardProps) {
+
+	console.log("vehicle card render", photoUrl);
 	return (
 		<div className="bg-white  shadow-lg border border-zinc-200 rounded-xl overflow-hidden">
-			<span>{id}</span>
+			<span>ID: {id}</span>
 			<img
-				src={photoUrl ? "http://localhost:5009/v1/car-image/"+photoUrl : DEFAULT_IMAGE_URL}
+				src={photoUrl !== "" ? `http://localhost:5009/v1/car-image/${photoUrl}` : DEFAULT_IMAGE_URL}
 				alt={`${brand} ${model}`}
 				className="w-full h-40 object-contain"
 			/>

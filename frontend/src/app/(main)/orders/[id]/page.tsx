@@ -12,6 +12,7 @@ import { OrderDetailsSection } from '@/components/Order/OrderDetailsSection';
 import { PartItem } from '@/components/Order/PartItem';
 import { TaskItem } from '@/components/Order/TaskItem';
 import { CommentItem } from '@/components/Order/CommentItem';
+import { useCreateReportMutation } from '@/store/api/reportsApi';
 
 export default function OrderDetailsPage() {
 	const { id } = useParams();
@@ -24,6 +25,7 @@ export default function OrderDetailsPage() {
 	const [deletePart] = useDeleteServicePartMutation();
 	const [createComment] = useCreateCommentMutation();
 	const [deleteComment] = useDeleteCommentMutation();
+	const [generateReport] = useCreateReportMutation();
 
 	const order = data?.serviceCompleteOrder;
 
@@ -56,7 +58,6 @@ export default function OrderDetailsPage() {
 		setNewTaskCost('');
 		refetch();
 	};
-
 
 	const handleRemoveTask = async (taskId: number) => {
 		await deleteTask(taskId);
@@ -96,8 +97,6 @@ export default function OrderDetailsPage() {
 		refetch();
 	};
 
-
-
 	if (isLoading) {
 		return <Loader />;
 	}
@@ -105,11 +104,19 @@ export default function OrderDetailsPage() {
 		return <div>Error loading order details.</div>;
 	}
 
-	const handleGenerateReport = () => {
-		alert(`Generating report for: ${order.id}`);
-	};
+	const  handleGenerateReport = async () => {
+		try{
+			await generateReport({ OrderId: id }).unwrap();
+		}
+		catch (err) {
+			console.error('Failed to generate report:', err);
+			alert('Failed to generate report. Please try again later.');
+			return;
+		}finally {
+			alert(`Raport Generated`);
+		}
 
-	console.log('komenatrze', order.serviceComment);
+	};
 
 	return (
 		<div className="p-6 space-y-6">
@@ -144,7 +151,7 @@ export default function OrderDetailsPage() {
 					/>
 					<button
 						onClick={handleAddTask}
-						className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 w-30"
+						className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 w-30 hover: cursor-pointer"
 					>
 						+ Task
 					</button>
@@ -180,19 +187,17 @@ export default function OrderDetailsPage() {
 					/>
 					<button
 						onClick={handleAddPart}
-						className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 w-30"
+						className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700 w-30 hover: cursor-pointer"
 					>
 						+ Part
 					</button>
 				</div>
 			</OrderDetailsSection>
 
-			{/* Comments */}
 			<OrderDetailsSection title="💬 Comments">
 				{order.serviceComment.map((comment) => (
 					<div key={comment.id} className="flex justify-between items-center">
 						<CommentItem {...comment} author="" />
-
 					</div>
 				))}
 				{showCommentInput ? (
@@ -207,13 +212,13 @@ export default function OrderDetailsPage() {
 						<div className="flex justify-end gap-2">
 							<button
 								onClick={() => setShowCommentInput(false)}
-								className="px-3 py-1 text-sm rounded bg-zinc-200 hover:bg-zinc-300"
+								className="px-3 py-1 text-sm rounded bg-zinc-200 hover:bg-zinc-300 "
 							>
 								Cancel
 							</button>
 							<button
 								onClick={handleAddComment}
-								className="px-4 py-1.5 bg-orange-600 text-white text-sm rounded hover:bg-orange-700"
+								className="px-4 py-1.5 bg-orange-600 text-white text-sm rounded hover:bg-orange-700 hover: cursor-pointer"
 							>
 								Send
 							</button>
@@ -223,7 +228,7 @@ export default function OrderDetailsPage() {
 					<div className="flex justify-between items-center mt-6">
 						<button
 							onClick={() => setShowCommentInput(true)}
-							className="inline-flex items-center gap-1 bg-orange-600 text-white text-sm px-3 py-1.5 rounded hover:bg-orange-700"
+							className="inline-flex items-center gap-1 bg-orange-600 text-white text-sm px-3 py-1.5 rounded hover:bg-orange-700 hover: cursor-pointer"
 						>
 							<span className="text-lg leading-none">+</span>
 							Add comment
@@ -232,17 +237,16 @@ export default function OrderDetailsPage() {
 				)}
 			</OrderDetailsSection>
 
-			{/* Bottom actions */}
 			<div className="pt-6 flex justify-between">
 				<button
 					onClick={handleGenerateReport}
-					className="bg-orange-600 text-white px-5 py-2 rounded-lg hover:bg-orange-700"
+					className="bg-orange-600 text-white px-5 py-2 rounded-lg hover:bg-orange-700 hover: cursor-pointer"
 				>
 					📄 Generate report
 				</button>
 				<button
 					onClick={handleDeleteOrder}
-					className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700"
+					className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 hover: cursor-pointer"
 				>
 					🗑️ Delete Order
 				</button>

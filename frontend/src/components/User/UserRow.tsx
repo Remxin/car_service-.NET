@@ -65,28 +65,28 @@ export function UserRow(props: UserRowProps) {
 					<td colSpan={5} className="bg-zinc-100 p-4">
 						<div className="flex items-center gap-4">
 							<select
-								value={selectedRoleId || ''}
-								onChange={(e) => setSelectedRoleId(Number(e.target.value))}
+								value={ selectedRoleId || "" }
+								onChange={ (e) => setSelectedRoleId(Number(e.target.value)) }
 								className="border border-zinc-300 rounded px-2 py-1"
 							>
 								<option value="" disabled>
-									Wybierz rolę
+									Select role
 								</option>
-								<option value={1}>Admin</option>
-								<option value={2}>Mechanic</option>
-								<option value={3}>Reception</option>
+								<option value={ 1 }>Admin</option>
+								<option value={ 2 }>Reception</option>
+								<option value={ 3 }>Mechanic</option>
 							</select>
 							<button
-								onClick={handleAddRole}
+								onClick={ handleAddRole}
 								className="bg-orange-600 text-white px-3 py-1 rounded hover:bg-orange-700"
 							>
-								Dodaj rolę
+								Add role
 							</button>
 							<button
 								onClick={() => setIsEditing(false)}
 								className="text-zinc-500 hover:text-zinc-800"
 							>
-								Anuluj
+								Cancel
 							</button>
 						</div>
 					</td>

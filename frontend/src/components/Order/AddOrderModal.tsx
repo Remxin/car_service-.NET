@@ -59,9 +59,8 @@ const AddOrderModal = ({ open, onClose }: Props) => {
 								{...register('status')}
 								className="w-full mt-1 px-3 py-2 border border-zinc-300 rounded-md shadow-sm"
 							>
-								<option value="new">New</option>
-								<option value="in_progress">In Progress</option>
-								<option value="completed">Completed</option>
+								<option value="NEW">New</option>
+								<option value="IN_PROGRESS">In Progress</option>
 							</select>
 						</div>
 

@@ -28,23 +28,23 @@ const OrderCard = ({
 							  createdAt,
 						  }: OrderCardProps) => {
 	const statusInfo = {
-		new: {
+		NEW: {
 			label: 'New',
 			icon: <Timer className="w-4 h-4" />,
 			color: 'bg-orange-100 text-orange-800',
 		},
-		in_progress: {
+		IN_PROGRESS: {
 			label: 'In progress',
 			icon: <Timer className="w-4 h-4 animate-pulse" />,
 			color: 'bg-amber-100 text-amber-800',
 		},
-		completed: {
-			label: 'Ended',
-			icon: <CheckCircle className="w-4 h-4" />,
-			color: 'bg-emerald-100 text-emerald-800',
+		GENERATED:{
+				label: 'generated',
+				icon: <CheckCircle className="w-4 h-4" />,
+				color: 'bg-emerald-100 text-emerald-800',
 		},
-		canceled: {
-			label: 'Canceled',
+		EXPIRED: {
+			label: 'EXPIRED',
 			icon: <XCircle className="w-4 h-4" />,
 			color: 'bg-rose-100 text-rose-800',
 		},
